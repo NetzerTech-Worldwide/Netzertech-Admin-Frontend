@@ -31,6 +31,7 @@ import {
   Heart,
 } from "lucide-react";
 import { generateAcademicSessions, terms } from "../../utils/academicSessions";
+import api from "../../utils/api";
 
 const navSections = [
   {
