@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { Dashboard } from "./components/admin/Dashboard";
 import { Students } from "./components/admin/Students";
@@ -38,18 +39,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export const router = createBrowserRouter([
   {
     path: "/login",
-    Component: Login,
+    element: <ErrorBoundary><Login /></ErrorBoundary>,
   },
   {
     path: "/signup",
-    Component: Signup,
+    element: <ErrorBoundary><Signup /></ErrorBoundary>,
   },
   {
     path: "/",
     element: (
-      <ProtectedRoute>
-        <AdminLayout />
-      </ProtectedRoute>
+      <ErrorBoundary>
+        <ProtectedRoute>
+          <AdminLayout />
+        </ProtectedRoute>
+      </ErrorBoundary>
     ),
     children: [
       { index: true, Component: Dashboard },
