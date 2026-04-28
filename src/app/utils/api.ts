@@ -1,4 +1,16 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+const getBaseUrl = () => {
+  let url = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+  
+  // Clean up the URL if it contains /api-docs (common misconfiguration)
+  if (url.endsWith('/api-docs')) {
+    url = url.replace('/api-docs', '/api/v1');
+  }
+  
+  // Ensure it doesn't end with a slash to avoid double slashes in fetch
+  return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+
+const BASE_URL = getBaseUrl();
 
 export const getAuthToken = () => localStorage.getItem('admin_token') || '';
 

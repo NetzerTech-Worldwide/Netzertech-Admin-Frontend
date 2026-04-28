@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { Dashboard } from "./components/admin/Dashboard";
 import { Students } from "./components/admin/Students";
@@ -23,11 +23,34 @@ import { UserManagement } from "./components/admin/UserManagement";
 import { Library } from "./components/admin/Library";
 import { ContactForms } from "./components/admin/ContactForms";
 import { Clubs } from "./components/admin/Clubs";
+import { Login } from "./components/auth/Login";
+import { Signup } from "./components/auth/Signup";
+
+// Basic Protected Route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem("admin_token");
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
 
 export const router = createBrowserRouter([
   {
+    path: "/login",
+    Component: Login,
+  },
+  {
+    path: "/signup",
+    Component: Signup,
+  },
+  {
     path: "/",
-    Component: AdminLayout,
+    element: (
+      <ProtectedRoute>
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, Component: Dashboard },
       { path: "students", Component: Students },
@@ -53,5 +76,10 @@ export const router = createBrowserRouter([
       { path: "clubs", Component: Clubs },
       { path: "settings", Component: Settings },
     ],
+  },
+  // Catch all - redirect to dashboard (which will redirect to login if no token)
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
   },
 ]);
