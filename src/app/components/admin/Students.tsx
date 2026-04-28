@@ -24,7 +24,7 @@ export function Students() {
   
   // Add Student Form State
   const [formData, setFormData] = useState({
-    studentFirstName: '', studentLastName: '', gender: 'Male', dateOfBirth: '', class: 'JSS 1A', studentEmail: '',
+    studentId: '', studentFirstName: '', studentLastName: '', gender: 'Male', dateOfBirth: '', class: 'JSS 1A', studentEmail: '',
     parentTitle: 'Mr.', parentFirstName: '', parentLastName: '', parentPhone: '', parentEmail: '', parentOccupation: '', parentAddress: '', relationship: 'Father'
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -49,10 +49,14 @@ export function Students() {
   const handleAddStudent = async () => {
     try {
       setIsLoading(true);
-      await api.post('/admin/students', formData);
+      // Remove empty studentId so backend auto-generates
+      const dataToSend = { ...formData };
+      if (!dataToSend.studentId) delete dataToSend.studentId;
+
+      await api.post('/admin/students', dataToSend);
       setShowAddModal(false);
       setFormData({
-        studentFirstName: '', studentLastName: '', gender: 'Male', dateOfBirth: '', class: 'JSS 1A', studentEmail: '',
+        studentId: '', studentFirstName: '', studentLastName: '', gender: 'Male', dateOfBirth: '', class: 'JSS 1A', studentEmail: '',
         parentTitle: 'Mr.', parentFirstName: '', parentLastName: '', parentPhone: '', parentEmail: '', parentOccupation: '', parentAddress: '', relationship: 'Father'
       });
       fetchData(); // Refresh list
@@ -244,6 +248,12 @@ export function Students() {
               <div>
                 <h4 style={{ fontSize: "14px", fontWeight: 600 }} className="mb-3 text-[#1B6B8A]">Student Information</h4>
                 <div className="space-y-4">
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <p className="text-blue-700" style={{ fontSize: "12px" }}>
+                      <strong>ID Assignment:</strong> If you leave Student ID blank, the system will automatically assign one (e.g. STU2026001).
+                    </p>
+                  </div>
+                  <div><label style={{ fontSize: "13px" }}>Student ID (Optional)</label><input value={formData.studentId} onChange={e => setFormData({...formData, studentId: e.target.value})} placeholder="Leave blank to auto-generate" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
                   <div className="grid grid-cols-2 gap-4">
                     <div><label style={{ fontSize: "13px" }}>First Name</label><input value={formData.studentFirstName} onChange={e => setFormData({...formData, studentFirstName: e.target.value})} placeholder="e.g. John" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
                     <div><label style={{ fontSize: "13px" }}>Last Name</label><input value={formData.studentLastName} onChange={e => setFormData({...formData, studentLastName: e.target.value})} placeholder="e.g. Doe" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
