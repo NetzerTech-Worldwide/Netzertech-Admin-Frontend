@@ -120,10 +120,9 @@ export function Finance() {
 
   const fetchBills = async () => {
     try {
-      const response = await api.get('/admin/finance/bills', {
-        params: { session: sessionFilter, term: termFilter }
-      });
-      setBills(response.data);
+      const params = new URLSearchParams({ session: sessionFilter, term: termFilter }).toString();
+      const data = await api.get(`/admin/finance/bills?${params}`);
+      setBills(data);
     } catch (error) {
       console.error("Error fetching bills:", error);
     }
@@ -131,8 +130,8 @@ export function Finance() {
 
   const fetchPayments = async () => {
     try {
-      const response = await api.get('/admin/finance/payments');
-      setPaymentRecords(response.data);
+      const data = await api.get('/admin/finance/payments');
+      setPaymentRecords(data);
     } catch (error) {
       console.error("Error fetching payments:", error);
     }
@@ -140,8 +139,8 @@ export function Finance() {
 
   const fetchStudents = async () => {
     try {
-      const response = await api.get('/admin/students');
-      setAllStudentsList(response.data.map((s: any) => ({ name: s.name, class: s.class })));
+      const data = await api.get('/admin/students');
+      setAllStudentsList(data.map((s: any) => ({ name: s.name, class: s.class })));
     } catch (error) {
       console.error("Error fetching students:", error);
     }
