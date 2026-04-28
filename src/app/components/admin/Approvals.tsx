@@ -81,16 +81,16 @@ export function Approvals() {
     }
   };
 
-  const filtered = approvals.filter((a) => {
+  const filtered = (Array.isArray(approvals) ? approvals : []).filter((a) => {
     const matchCategory = selectedCategory === "all" || a.type === selectedCategory;
     const matchStatus = statusFilter === "All" || a.status === statusFilter;
     const matchSearch = a.title.toLowerCase().includes(searchTerm.toLowerCase()) || a.submittedBy.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCategory && matchStatus && matchSearch;
   });
 
-  const pendingCount = approvals.filter((a) => a.status === "Pending").length;
-  const approvedCount = approvals.filter((a) => a.status === "Approved").length;
-  const rejectedCount = approvals.filter((a) => a.status === "Rejected").length;
+  const pendingCount = (Array.isArray(approvals) ? approvals : []).filter((a) => a.status === "Pending").length;
+  const approvedCount = (Array.isArray(approvals) ? approvals : []).filter((a) => a.status === "Approved").length;
+  const rejectedCount = (Array.isArray(approvals) ? approvals : []).filter((a) => a.status === "Rejected").length;
 
   const priorityColor = (p: string) => {
     switch (p) {

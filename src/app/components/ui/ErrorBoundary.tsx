@@ -8,12 +8,13 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -21,6 +22,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    this.setState({ errorInfo });
     console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
@@ -37,10 +39,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
               We've encountered an unexpected error. Don't worry, your data is safe.
             </p>
             
-            <div className="bg-slate-50 rounded-lg p-4 mb-8 text-left overflow-auto max-h-32">
-              <p className="text-xs font-mono text-red-600">
+            <div className="bg-slate-50 rounded-lg p-4 mb-8 text-left overflow-auto max-h-64">
+              <p className="text-xs font-mono text-red-600 font-bold mb-2">
                 {this.state.error?.message}
               </p>
+              {this.state.errorInfo && (
+                <pre className="text-[10px] font-mono text-slate-500 whitespace-pre-wrap leading-tight">
+                  {this.state.errorInfo.componentStack}
+                </pre>
+              )}
             </div>
 
             <button

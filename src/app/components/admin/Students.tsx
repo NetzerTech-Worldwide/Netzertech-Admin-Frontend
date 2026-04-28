@@ -102,7 +102,9 @@ export function Students() {
               {view === "classes" ? "Student Management" : `${selectedClass} — Students`}
             </h2>
             <p className="text-muted-foreground" style={{ fontSize: "13px" }}>
-              {view === "classes" ? `${totalStudents} students across ${classInfo.length} classes` : `${studentsInClass.length} students enrolled`}
+              {view === "classes" 
+                ? `${totalStudents} students across ${(classInfo || []).length} classes` 
+                : `${(studentsInClass || []).length} students enrolled`}
             </p>
           </div>
         </div>
@@ -119,7 +121,7 @@ export function Students() {
       {/* Classes Grid View */}
       {view === "classes" && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {classInfo.map((cls) => (
+          {(Array.isArray(classInfo) ? classInfo : []).map((cls) => (
             <div
               key={cls.name}
               onClick={() => { setSelectedClass(cls.name); setView("students"); }}
@@ -223,7 +225,7 @@ export function Students() {
               </table>
             </div>
             <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-              <p className="text-muted-foreground" style={{ fontSize: "13px" }}>Showing {filtered.length} students</p>
+              <p className="text-muted-foreground" style={{ fontSize: "13px" }}>Showing {(filtered || []).length} students</p>
             </div>
           </div>
         </>

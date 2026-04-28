@@ -42,7 +42,7 @@ export function Teachers() {
     }
   };
 
-  const filtered = teachers.filter((t) => {
+  const filtered = (Array.isArray(teachers) ? teachers : []).filter((t) => {
     const matchSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.subject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === "All" || t.status === statusFilter;
     return matchSearch && matchStatus;
@@ -81,10 +81,10 @@ export function Teachers() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Teachers", value: teachers.length, color: "#1B6B8A" },
-          { label: "Active", value: teachers.filter(t => t.status === "Active").length, color: "#22C55E" },
-          { label: "On Leave", value: teachers.filter(t => t.status === "On Leave").length, color: "#F59E0B" },
-          { label: "Inactive", value: teachers.filter(t => t.status === "Inactive").length, color: "#EF4444" },
+          { label: "Total Teachers", value: (Array.isArray(teachers) ? teachers : []).length, color: "#1B6B8A" },
+          { label: "Active", value: (Array.isArray(teachers) ? teachers : []).filter(t => t.status === "Active").length, color: "#22C55E" },
+          { label: "On Leave", value: (Array.isArray(teachers) ? teachers : []).filter(t => t.status === "On Leave").length, color: "#F59E0B" },
+          { label: "Inactive", value: (Array.isArray(teachers) ? teachers : []).filter(t => t.status === "Inactive").length, color: "#EF4444" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-border shadow-sm p-4">
             <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{s.label}</p>
