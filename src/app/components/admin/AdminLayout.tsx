@@ -131,9 +131,10 @@ export function AdminLayout() {
   };
 
   // Extract school name from address if present (it's stored as "School Name (Size: Size)")
-  const schoolDisplay = profile?.address ? profile.address.split(" (Size:")[0] : "NetzerTech";
-  const adminName = profile?.fullName || "Admin User";
-  const adminRole = profile?.department || "Super Admin";
+  const schoolDisplay = profile?.address ? profile.address.split(" (Size:")[0] : (profile ? "NetzerTech" : "");
+  const adminName = profile?.fullName || (profile ? "Admin User" : "");
+  const adminRole = profile?.department || (profile ? "Super Admin" : "");
+  const logoLetter = schoolDisplay ? schoolDisplay.charAt(0).toUpperCase() : "N";
 
   // Regenerate available sessions when component mounts or session/term changes
   useEffect(() => {
@@ -224,12 +225,21 @@ export function AdminLayout() {
       >
         {/* Logo */}
         <div className="px-5 py-5 flex items-center gap-2 border-b border-border">
-          <div className="w-9 h-9 bg-[#1B6B8A] rounded-full flex items-center justify-center">
-            <span className="text-white" style={{ fontSize: "14px", fontWeight: 700 }}>N</span>
+          <div className={`w-9 h-9 bg-[#1B6B8A] rounded-full flex items-center justify-center ${!profile ? 'animate-pulse' : ''}`}>
+            <span className="text-white" style={{ fontSize: "14px", fontWeight: 700 }}>{logoLetter}</span>
           </div>
-          <div>
-            <h3 className="text-[#1B6B8A]" style={{ fontSize: "15px", fontWeight: 700, lineHeight: "1.2" }}>{schoolDisplay}</h3>
-            <p className="text-[#1B6B8A]/60" style={{ fontSize: "8px", fontWeight: 500, letterSpacing: "1px" }}>VERSACORE PROVIDEX</p>
+          <div className="flex-1 min-w-0">
+            {profile ? (
+              <>
+                <h3 className="text-[#1B6B8A] truncate" style={{ fontSize: "15px", fontWeight: 700, lineHeight: "1.2" }}>{schoolDisplay}</h3>
+                <p className="text-[#1B6B8A]/60" style={{ fontSize: "8px", fontWeight: 500, letterSpacing: "1px" }}>VERSACORE PROVIDEX</p>
+              </>
+            ) : (
+              <div className="space-y-1 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+                <div className="h-2 bg-gray-100 rounded w-16"></div>
+              </div>
+            )}
           </div>
           <button
             className="lg:hidden ml-auto p-1"
@@ -371,14 +381,23 @@ export function AdminLayout() {
 
             {/* Admin Profile */}
             <div className="flex items-center gap-2 cursor-pointer">
-              <div className="w-9 h-9 rounded-full bg-[#1B6B8A] flex items-center justify-center">
-                <span className="text-white" style={{ fontSize: "13px", fontWeight: 600 }}>{adminName.substring(0, 2).toUpperCase()}</span>
+              <div className={`w-9 h-9 rounded-full bg-[#1B6B8A] flex items-center justify-center ${!profile ? 'animate-pulse' : ''}`}>
+                <span className="text-white" style={{ fontSize: "13px", fontWeight: 600 }}>{adminName ? adminName.substring(0, 2).toUpperCase() : "??"}</span>
               </div>
-              <div className="hidden sm:block">
-                <p style={{ fontSize: "13px", fontWeight: 500 }}>{adminName}</p>
-                <p className="text-muted-foreground" style={{ fontSize: "11px" }}>
-                  {adminRole}
-                </p>
+              <div className="hidden sm:block min-w-[80px]">
+                {profile ? (
+                  <>
+                    <p style={{ fontSize: "13px", fontWeight: 500 }}>{adminName}</p>
+                    <p className="text-muted-foreground" style={{ fontSize: "11px" }}>
+                      {adminRole}
+                    </p>
+                  </>
+                ) : (
+                  <div className="space-y-1 animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-20"></div>
+                    <div className="h-2 bg-gray-100 rounded w-16"></div>
+                  </div>
+                )}
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
             </div>
