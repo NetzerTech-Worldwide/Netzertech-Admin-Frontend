@@ -264,23 +264,32 @@ export function Students() {
                   </div>
                   <div>
                     <label style={{ fontSize: "13px" }}>Class</label>
-                    <select 
-                      value={formData.class} 
-                      onChange={e => setFormData({...formData, class: e.target.value})} 
-                      className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" 
-                      style={{ fontSize: "13px" }}
-                    >
-                      <option value="">Select a class</option>
-                      {(Array.isArray(classInfo) ? classInfo : []).map(cls => (
-                        <option key={cls.name} value={cls.name}>{cls.name}</option>
-                      ))}
-                      {!classInfo?.length && (
-                        <>
-                          <option>JSS 1A</option><option>JSS 1B</option>
-                          <option>SS 1A</option><option>SS 1B</option>
-                        </>
-                      )}
-                    </select>
+                    {(Array.isArray(classInfo) && classInfo.length > 0) ? (
+                      <select 
+                        value={formData.class} 
+                        onChange={e => setFormData({...formData, class: e.target.value})} 
+                        className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" 
+                        style={{ fontSize: "13px" }}
+                      >
+                        <option value="">Select a class</option>
+                        {classInfo.map(cls => (
+                          <option key={cls.name} value={cls.name}>{cls.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="mt-1 p-3 bg-red-50 border border-red-100 rounded-lg">
+                        <p className="text-red-700 mb-2" style={{ fontSize: "12px" }}>
+                          No classes found. You must create at least one class before adding students.
+                        </p>
+                        <button 
+                          onClick={() => navigate("/classes")}
+                          className="text-[#1B6B8A] font-semibold hover:underline"
+                          style={{ fontSize: "12px" }}
+                        >
+                          Go to Class Management →
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div><label style={{ fontSize: "13px" }}>Student Email (Optional)</label><input type="email" value={formData.studentEmail} onChange={e => setFormData({...formData, studentEmail: e.target.value})} placeholder="student@school.ng" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
                 </div>
@@ -323,7 +332,14 @@ export function Students() {
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-lg border border-border hover:bg-gray-50" style={{ fontSize: "13px" }}>Cancel</button>
-              <button disabled={isLoading} onClick={handleAddStudent} className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74] disabled:opacity-50" style={{ fontSize: "13px" }}>{isLoading ? 'Adding...' : 'Add Student & Create Parent'}</button>
+              <button 
+                disabled={isLoading || !classInfo?.length || !formData.class} 
+                onClick={handleAddStudent} 
+                className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74] disabled:opacity-50 disabled:cursor-not-allowed" 
+                style={{ fontSize: "13px" }}
+              >
+                {isLoading ? 'Adding...' : 'Add Student & Create Parent'}
+              </button>
             </div>
           </div>
         </div>
