@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, X, Printer, Edit, Save, Loader2, School } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import api from "../../utils/api";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];

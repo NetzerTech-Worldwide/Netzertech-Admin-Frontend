@@ -5,7 +5,7 @@ import {
   Globe, Users, GraduationCap, Percent, Building, Mail,
   Printer, Bell, Tag, PieChart, TrendingDown, Calendar, Loader2, School,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";

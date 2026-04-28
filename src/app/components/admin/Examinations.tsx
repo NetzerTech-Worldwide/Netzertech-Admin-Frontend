@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, Eye, Edit, Download, X, FileText, Calendar, ChevronLeft, ChevronRight, School, Users, Trash2, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import api from "../../utils/api";
 
 const sessions = ["2025/2026", "2024/2025", "2023/2024"];

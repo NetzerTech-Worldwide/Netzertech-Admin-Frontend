@@ -3,7 +3,7 @@ import {
   Download, FileText, Search, Eye, Printer, GraduationCap,
   ChevronRight, ChevronLeft, X, User, Calendar, BookOpen, School, Users, Loader2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import api from "../../utils/api";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,

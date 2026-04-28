@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import {
   Search, Download, ChevronLeft, ChevronRight, Eye, School,
-  Users, CheckCircle, XCircle, Clock, AlertCircle, X,
+  Users, CheckCircle, XCircle, Clock, AlertCircle, X, Loader2
 } from "lucide-react";
+import { useNavigate } from "react-router";
 import { api } from "../../utils/api";
 
 const sessions = ["2025/2026", "2024/2025", "2023/2024"];

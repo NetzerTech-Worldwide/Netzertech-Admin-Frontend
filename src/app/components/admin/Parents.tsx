@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, Download, Mail, Phone, Users, Eye, X, School, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import api from "../../utils/api";
 
 type ParentType = { id: string; name: string; phone: string; email: string; children: string[]; occupation: string; status: string };
