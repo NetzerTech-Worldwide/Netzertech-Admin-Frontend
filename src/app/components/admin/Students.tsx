@@ -262,7 +262,26 @@ export function Students() {
                     <div><label style={{ fontSize: "13px" }}>Gender</label><select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option>Male</option><option>Female</option></select></div>
                     <div><label style={{ fontSize: "13px" }}>Date of Birth</label><input type="date" value={formData.dateOfBirth} onChange={e => setFormData({...formData, dateOfBirth: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
                   </div>
-                  <div><label style={{ fontSize: "13px" }}>Class</label><select value={formData.class} onChange={e => setFormData({...formData, class: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option>JSS 1A</option><option>JSS 1B</option><option>JSS 2A</option><option>JSS 2B</option><option>JSS 3A</option><option>JSS 3B</option><option>SS 1A</option><option>SS 1B</option><option>SS 2A</option><option>SS 2B</option><option>SS 3A</option><option>SS 3B</option></select></div>
+                  <div>
+                    <label style={{ fontSize: "13px" }}>Class</label>
+                    <select 
+                      value={formData.class} 
+                      onChange={e => setFormData({...formData, class: e.target.value})} 
+                      className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" 
+                      style={{ fontSize: "13px" }}
+                    >
+                      <option value="">Select a class</option>
+                      {(Array.isArray(classInfo) ? classInfo : []).map(cls => (
+                        <option key={cls.name} value={cls.name}>{cls.name}</option>
+                      ))}
+                      {!classInfo?.length && (
+                        <>
+                          <option>JSS 1A</option><option>JSS 1B</option>
+                          <option>SS 1A</option><option>SS 1B</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
                   <div><label style={{ fontSize: "13px" }}>Student Email (Optional)</label><input type="email" value={formData.studentEmail} onChange={e => setFormData({...formData, studentEmail: e.target.value})} placeholder="student@school.ng" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
                 </div>
               </div>
