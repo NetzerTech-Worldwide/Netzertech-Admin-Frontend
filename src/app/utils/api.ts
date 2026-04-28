@@ -38,3 +38,6 @@ export const api = {
   patch: (endpoint: string, body: any) => fetchWithAuth(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: (endpoint: string) => fetchWithAuth(endpoint, { method: 'DELETE' }),
 };
+
+export default api;
+
