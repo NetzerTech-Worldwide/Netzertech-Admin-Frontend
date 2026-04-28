@@ -1281,7 +1281,7 @@ export function Library() {
                             {student.overdueBooks}
                           </span>
                         </td>
-                        <td className="px-6 py-4" style={{ fontSize: "13px", fontWeight: student.totalFines > 0 ? 600 : 400 }} className={student.totalFines > 0 ? "text-red-600" : ""}>
+                        <td className={`px-6 py-4 ${student.totalFines > 0 ? "text-red-600" : ""}`} style={{ fontSize: "13px", fontWeight: student.totalFines > 0 ? 600 : 400 }}>
                           {student.totalFines > 0 ? `₦${student.totalFines.toLocaleString()}` : "₦0"}
                         </td>
                         <td className="px-6 py-4">

@@ -7,12 +7,12 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   
   const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: \`Bearer \${token}\` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
   try {
-    const response = await fetch(\`\${BASE_URL}\${endpoint}\`, {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
@@ -22,7 +22,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
     const data = isJson ? await response.json() : await response.text();
 
     if (!response.ok) {
-      throw new Error(data?.message || \`HTTP error! status: \${response.status}\`);
+      throw new Error(data?.message || `HTTP error! status: ${response.status}`);
     }
 
     return data;
