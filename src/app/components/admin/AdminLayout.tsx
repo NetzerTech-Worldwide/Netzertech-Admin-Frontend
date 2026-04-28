@@ -101,7 +101,10 @@ export function AdminLayout() {
     "Operations",
     "Settings",
   ]);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => {
+    const cached = localStorage.getItem("admin_profile");
+    return cached ? JSON.parse(cached) : null;
+  });
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -118,6 +121,7 @@ export function AdminLayout() {
       try {
         const response = await api.get("/auth/profile");
         setProfile(response);
+        localStorage.setItem("admin_profile", JSON.stringify(response));
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       }
@@ -127,6 +131,7 @@ export function AdminLayout() {
 
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_profile");
     navigate("/login");
   };
 

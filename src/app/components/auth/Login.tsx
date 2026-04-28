@@ -18,7 +18,11 @@ export const Login: React.FC = () => {
     try {
       const response = await api.post("/auth/login/admin", { email, password });
       localStorage.setItem("admin_token", response.accessToken);
-      // If user info is available, store it or handle it as needed
+      
+      // Fetch profile and cache it for instant UI rendering
+      const profile = await api.get("/auth/profile");
+      localStorage.setItem("admin_profile", JSON.stringify(profile));
+      
       navigate("/");
     } catch (err: any) {
       setError(err.message || "Failed to login. Please check your credentials.");
