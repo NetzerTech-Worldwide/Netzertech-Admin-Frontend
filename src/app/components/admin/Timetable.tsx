@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { Plus, X, Printer, Edit, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, X, Printer, Edit, Save, Loader2, School } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const periods = [
@@ -14,10 +16,6 @@ const periods = [
   { time: "1:45 - 2:30", label: "Period 7" },
 ];
 
-const allClasses = ["JSS 1A", "JSS 1B", "JSS 2A", "JSS 2B", "JSS 3A", "JSS 3B", "SS 1A", "SS 1B", "SS 2A", "SS 2B", "SS 3A", "SS 3B"];
-const allSubjects = ["Mathematics", "English", "Biology", "Physics", "Chemistry", "Geography", "F. Maths", "Civic Ed", "History", "Yoruba", "Igbo", "Hausa", "Computer Science", "Fine Art", "Music", "Sports", "PHE", "Basic Tech", "Home Econ"];
-const allTeachers = ["Mr. Nwosu", "Mrs. Balogun", "Dr. Okeke", "Mrs. Suleiman", "Mr. Adesanya", "Mrs. Emenike", "Mr. Yusuf", "Mrs. Adeyemi", "Mr. Adamu", "Mr. Aderibigbe", "Mrs. Okafor", "Mr. Onwueme"];
-
 const subjectColors: Record<string, string> = {
   "Mathematics": "#1B6B8A", "English": "#8B5CF6", "Biology": "#22C55E",
   "Physics": "#F59E0B", "Chemistry": "#EF4444", "F. Maths": "#06B6D4",
@@ -30,10 +28,41 @@ const subjectColors: Record<string, string> = {
 const timetableData: Record<string, Record<string, Record<string, { subject: string; teacher: string; color: string }>>> = {};
 
 export function Timetable() {
-  const [selectedClass, setSelectedClass] = useState("SS 3A");
+  const [selectedClass, setSelectedClass] = useState("");
   const [showAddPeriod, setShowAddPeriod] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingSlot, setEditingSlot] = useState<{ day: string; period: string } | null>(null);
+  
+  const [classes, setClasses] = useState<any[]>([]);
+  const [subjects, setSubjects] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [classesRes, subjectsRes, teachersRes] = await Promise.all([
+          api.get("/admin/classes/overview"),
+          api.get("/admin/subjects"),
+          api.get("/admin/teachers")
+        ]);
+        setClasses(classesRes || []);
+        setSubjects(subjectsRes || []);
+        setTeachers(teachersRes || []);
+        
+        if (classesRes && classesRes.length > 0) {
+          setSelectedClass(classesRes[0].name);
+        }
+      } catch (err) {
+        console.error("Failed to fetch timetable dependencies:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const classData = timetableData[selectedClass] || {};
 
@@ -42,6 +71,27 @@ export function Timetable() {
       setEditingSlot({ day, period });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B6B8A]" />
+      </div>
+    );
+  }
+
+  if (classes.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-dashed border-border py-20 text-center">
+        <div className="w-16 h-16 bg-[#F5F7FA] rounded-full flex items-center justify-center mx-auto mb-4">
+          <School className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold mb-1">No classes found</h3>
+        <p className="text-muted-foreground mb-6">Create classes first to manage their timetables</p>
+        <button onClick={() => navigate("/classes")} className="px-6 py-2 bg-[#1B6B8A] text-white rounded-lg hover:bg-[#155a74]">Go to Classes</button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -76,16 +126,16 @@ export function Timetable() {
 
       {/* Class Selector */}
       <div className="bg-white rounded-xl border border-border p-4 shadow-sm flex flex-wrap gap-2">
-        {allClasses.map((cls) => (
+        {classes.map((cls) => (
           <button
-            key={cls}
-            onClick={() => setSelectedClass(cls)}
+            key={cls.id}
+            onClick={() => setSelectedClass(cls.name)}
             className={`px-4 py-2 rounded-full transition-colors ${
-              selectedClass === cls ? "bg-[#1B6B8A] text-white" : "bg-[#F5F7FA] hover:bg-[#E8F4F8] text-[#4a5568]"
+              selectedClass === cls.name ? "bg-[#1B6B8A] text-white" : "bg-[#F5F7FA] hover:bg-[#E8F4F8] text-[#4a5568]"
             }`}
             style={{ fontSize: "13px" }}
           >
-            {cls}
+            {cls.name}
           </button>
         ))}
       </div>
@@ -161,8 +211,8 @@ export function Timetable() {
             <div className="p-6 space-y-4">
               <div>
                 <label style={{ fontSize: "13px" }}>Class</label>
-                <select defaultValue={selectedClass} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
-                  {allClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                  {classes.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -183,14 +233,14 @@ export function Timetable() {
                 <label style={{ fontSize: "13px" }}>Subject</label>
                 <select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="">Select Subject</option>
-                  {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+                  {subjects.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Teacher</label>
                 <select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="">Select Teacher</option>
-                  {allTeachers.map(t => <option key={t} value={t}>{t}</option>)}
+                  {teachers.map(t => <option key={t.id} value={t.fullName}>{t.fullName}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -225,14 +275,14 @@ export function Timetable() {
                 <label style={{ fontSize: "13px" }}>Subject</label>
                 <select defaultValue={classData[editingSlot.day]?.[editingSlot.period]?.subject || ""} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="">-- Clear Slot --</option>
-                  {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+                  {subjects.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Teacher</label>
                 <select defaultValue={classData[editingSlot.day]?.[editingSlot.period]?.teacher || ""} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="">Select Teacher</option>
-                  {allTeachers.map(t => <option key={t} value={t}>{t}</option>)}
+                  {teachers.map(t => <option key={t.id} value={t.fullName}>{t.fullName}</option>)}
                 </select>
               </div>
             </div>

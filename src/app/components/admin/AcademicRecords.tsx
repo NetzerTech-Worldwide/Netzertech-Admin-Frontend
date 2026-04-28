@@ -1,34 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Download, FileText, Search, Eye, Printer, GraduationCap,
-  ChevronRight, ChevronLeft, X, User, Calendar, BookOpen, School, Users,
+  ChevronRight, ChevronLeft, X, User, Calendar, BookOpen, School, Users, Loader2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 
 const sessions = ["2025/2026", "2024/2025", "2023/2024"];
 const termsOptions = ["First Term", "Second Term", "Third Term"];
-const classLevels = ["SS1A", "SS1B", "SS2A", "SS2B", "SS3A", "SS3B"];
 
-const classRecords: { class: string; students: number; avgScore: number; passRate: number; topStudent: string; topScore: number; classTeacher: string }[] = [];
-
-const subjectBreakdown: { subject: string; avg: number }[] = [];
-
-const classStudentResults: Record<string, { id: string; name: string; position: number; total: number; avg: number; subjects: Record<string, number> }[]> = {};
-
-// Transcript data per student - with subject-level scores per session/term
-interface TranscriptTerm {
-  session: string;
-  class: string;
-  term: string;
-  subjects: { name: string; teacher: string; score: number; grade: string }[];
-  avgScore: number;
-  position: string;
-  passRate: number;
-}
-
-const transcriptData: Record<string, { name: string; id: string; currentClass: string; admissionDate: string; cumulativeAvg: number; terms: TranscriptTerm[] }> = {};
+const transcriptData: Record<string, { name: string; id: string; currentClass: string; admissionDate: string; cumulativeAvg: number; terms: any[] }> = {};
 
 const gradeColor = (grade: string) => {
   if (grade.startsWith("A")) return "bg-[rgba(33,99,136,0.1)] text-[#216388]";
@@ -60,6 +44,25 @@ export function AcademicRecords() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [transcriptSearch, setTranscriptSearch] = useState("");
+  
+  const [classes, setClasses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get("/admin/classes/overview");
+        setClasses(response || []);
+      } catch (err) {
+        console.error("Failed to fetch academic records dependencies:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const selectedTranscript = selectedStudentId ? transcriptData[selectedStudentId] : null;
 
@@ -72,6 +75,14 @@ export function AcademicRecords() {
       setSelectedClass(null);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B6B8A]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -118,61 +129,61 @@ export function AcademicRecords() {
       {/* Class Records Tab */}
       {activeTab === "Class Records" && view === "classes" && (
         <div className="space-y-4">
-          {/* Subject Performance Chart */}
-          <div className="bg-white rounded-xl border border-border shadow-sm p-5">
-            <h3 style={{ fontSize: "15px", fontWeight: 600 }}>Subject Performance Overview</h3>
-            <p className="text-muted-foreground mb-4" style={{ fontSize: "13px" }}>{sessionFilter} &middot; {termFilter}</p>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={subjectBreakdown}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="subject" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
-                <Tooltip />
-                <Bar dataKey="avg" fill="#1B6B8A" radius={[6, 6, 0, 0]} barSize={32} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Class Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {classRecords.map((record) => (
-              <div
-                key={record.class}
-                onClick={() => { setSelectedClass(record.class); setView("classResults"); }}
-                className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-all cursor-pointer group"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#E8F4F8] flex items-center justify-center group-hover:bg-[#1B6B8A] transition-colors">
-                      <span className="text-[#1B6B8A] group-hover:text-white transition-colors" style={{ fontSize: "14px", fontWeight: 700 }}>{record.class}</span>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: "15px", fontWeight: 600 }}>{record.class}</p>
-                      <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{record.classTeacher}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#1B6B8A]" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between"><span className="text-muted-foreground" style={{ fontSize: "12px" }}>Students</span><span style={{ fontSize: "13px", fontWeight: 500 }}>{record.students}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground" style={{ fontSize: "12px" }}>Average Score</span><span style={{ fontSize: "13px", fontWeight: 600 }} className="text-[#1B6B8A]">{record.avgScore}%</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground" style={{ fontSize: "12px" }}>Pass Rate</span><span className="text-green-600" style={{ fontSize: "13px", fontWeight: 500 }}>{record.passRate}%</span></div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-border">
-                  <p className="text-muted-foreground" style={{ fontSize: "11px" }}>Top Student</p>
-                  <div className="flex items-center justify-between">
-                    <span style={{ fontSize: "12px", fontWeight: 500 }}>{record.topStudent}</span>
-                    <span className="text-[#1B6B8A]" style={{ fontSize: "12px", fontWeight: 600 }}>{record.topScore}%</span>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: `${record.passRate}%` }} />
-                  </div>
+          {classes.length > 0 ? (
+            <>
+              {/* Subject Performance Chart - Placeholder for now as it needs backend data */}
+              <div className="bg-white rounded-xl border border-border shadow-sm p-5">
+                <h3 style={{ fontSize: "15px", fontWeight: 600 }}>Subject Performance Overview</h3>
+                <p className="text-muted-foreground mb-4" style={{ fontSize: "13px" }}>{sessionFilter} &middot; {termFilter}</p>
+                <div className="h-[280px] flex items-center justify-center text-muted-foreground bg-gray-50 rounded-lg border border-dashed border-border" style={{ fontSize: "13px" }}>
+                  Select a class to view performance metrics
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Class Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {classes.map((record) => (
+                  <div
+                    key={record.id}
+                    onClick={() => { setSelectedClass(record.name); setView("classResults"); }}
+                    className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-[#E8F4F8] flex items-center justify-center group-hover:bg-[#1B6B8A] transition-colors">
+                          <span className="text-[#1B6B8A] group-hover:text-white transition-colors" style={{ fontSize: "14px", fontWeight: 700 }}>{record.name}</span>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: "15px", fontWeight: 600 }}>{record.name}</p>
+                          <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{record.teacherName || "No teacher assigned"}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#1B6B8A]" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between"><span className="text-muted-foreground" style={{ fontSize: "12px" }}>Students</span><span style={{ fontSize: "13px", fontWeight: 500 }}>{record.totalStudents}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground" style={{ fontSize: "12px" }}>Average Score</span><span style={{ fontSize: "13px", fontWeight: 600 }} className="text-[#1B6B8A]">0%</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground" style={{ fontSize: "12px" }}>Pass Rate</span><span className="text-green-600" style={{ fontSize: "13px", fontWeight: 500 }}>0%</span></div>
+                    </div>
+                    <div className="mt-2">
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-500 rounded-full" style={{ width: `0%` }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="bg-white rounded-xl border border-dashed border-border py-20 text-center">
+              <div className="w-16 h-16 bg-[#F5F7FA] rounded-full flex items-center justify-center mx-auto mb-4">
+                <School className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-1">No classes found</h3>
+              <p className="text-muted-foreground mb-6">Create classes first to view academic records</p>
+              <button onClick={() => navigate("/classes")} className="px-6 py-2 bg-[#1B6B8A] text-white rounded-lg hover:bg-[#155a74]">Go to Classes</button>
+            </div>
+          )}
         </div>
       )}
 

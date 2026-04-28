@@ -1,48 +1,43 @@
-import { useState } from "react";
-import { Search, Plus, Eye, Edit, Download, X, FileText, Calendar, ChevronLeft, ChevronRight, School, Users, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus, Eye, Edit, Download, X, FileText, Calendar, ChevronLeft, ChevronRight, School, Users, Trash2, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import api from "../../utils/api";
 
 const sessions = ["2025/2026", "2024/2025", "2023/2024"];
 const termsOptions = ["First Term", "Second Term", "Third Term"];
 
-const exams: { id: string; name: string; term: string; type: string; startDate: string; endDate: string; classes: string[]; status: string; totalStudents: number }[] = [];
-
-const classResultsSummary: { class: string; students: number; avgScore: number; passRate: number; highestAvg: number; lowestAvg: number }[] = [];
-
-const classStudentResults: Record<string, { student: string; id: string; math: number; english: number; biology: number; physics: number; chemistry: number; total: number; avg: number; position: number }[]> = {};
-
-const tabs = ["Examinations", "Results", "Grade Settings"];
-
-type ResultView = "classes" | "students";
-
-interface GradeSetting {
-  grade: string;
-  minScore: number;
-  maxScore: number;
-  remark: string;
-  color: string;
-}
-
-const defaultGrades: GradeSetting[] = [
-  { grade: "A", minScore: 80, maxScore: 100, remark: "Excellent", color: "bg-green-50 text-green-700" },
-  { grade: "B", minScore: 70, maxScore: 79, remark: "Very Good", color: "bg-blue-50 text-blue-700" },
-  { grade: "C", minScore: 60, maxScore: 69, remark: "Good", color: "bg-yellow-50 text-yellow-700" },
-  { grade: "D", minScore: 50, maxScore: 59, remark: "Fair", color: "bg-orange-50 text-orange-700" },
-  { grade: "E", minScore: 40, maxScore: 49, remark: "Poor", color: "bg-red-50 text-red-700" },
-  { grade: "F", minScore: 0, maxScore: 39, remark: "Fail", color: "bg-red-100 text-red-800" },
-];
-
 export function Examinations() {
   const [activeTab, setActiveTab] = useState("Examinations");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState<typeof exams[0] | null>(null);
+  const [showEditModal, setShowEditModal] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sessionFilter, setSessionFilter] = useState("2025/2026");
-  const [termExamFilter, setTermExamFilter] = useState("All");
   const [resultView, setResultView] = useState<ResultView>("classes");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
-  const [gradeSettings, setGradeSettings] = useState<GradeSetting[]>(defaultGrades);
-  const [showEditGradeModal, setShowEditGradeModal] = useState<GradeSetting | null>(null);
-  const [editingGradeIndex, setEditingGradeIndex] = useState<number | null>(null);
+  
+  const [classes, setClasses] = useState<any[]>([]);
+  const [exams, setExams] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const [classesRes, examsRes] = await Promise.all([
+          api.get("/admin/classes/overview"),
+          api.get("/admin/exams") // Mocking exam endpoint
+        ]);
+        setClasses(classesRes || []);
+        setExams(examsRes || []);
+      } catch (err) {
+        console.error("Failed to fetch examination data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -53,6 +48,14 @@ export function Examinations() {
       default: return "bg-gray-50 text-gray-700";
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B6B8A]" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -77,7 +80,7 @@ export function Examinations() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-white rounded-xl border border-border shadow-sm p-1">
-        {tabs.map((tab) => (
+        {["Examinations", "Results", "Grade Settings"].map((tab) => (
           <button key={tab} onClick={() => { setActiveTab(tab); setResultView("classes"); setSelectedClass(null); }} className={`px-4 py-2 rounded-lg transition-colors ${activeTab === tab ? "bg-[#1B6B8A] text-white" : "hover:bg-gray-50"}`} style={{ fontSize: "13px" }}>{tab}</button>
         ))}
       </div>
@@ -109,7 +112,7 @@ export function Examinations() {
                   </tr>
                 </thead>
                 <tbody>
-                  {exams.map((exam) => (
+                  {exams.length > 0 ? exams.map((exam) => (
                     <tr key={exam.id} className="border-b border-border hover:bg-gray-50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -122,7 +125,7 @@ export function Examinations() {
                       <td className="px-4 py-3" style={{ fontSize: "13px" }}>{exam.term}</td>
                       <td className="px-4 py-3"><span className="px-2 py-0.5 rounded bg-[#E8F4F8] text-[#1B6B8A]" style={{ fontSize: "12px" }}>{exam.type}</span></td>
                       <td className="px-4 py-3" style={{ fontSize: "12px" }}>{exam.startDate} - {exam.endDate}</td>
-                      <td className="px-4 py-3" style={{ fontSize: "13px" }}>{exam.classes.length} classes</td>
+                      <td className="px-4 py-3" style={{ fontSize: "13px" }}>{exam.classes?.length || 0} classes</td>
                       <td className="px-4 py-3"><span className={`px-2.5 py-1 rounded-full ${statusColor(exam.status)}`} style={{ fontSize: "11px", fontWeight: 500 }}>{exam.status}</span></td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
@@ -131,7 +134,11 @@ export function Examinations() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground" style={{ fontSize: "13px" }}>No examinations scheduled yet.</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -151,47 +158,54 @@ export function Examinations() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {classResultsSummary.map((cls) => (
-              <div
-                key={cls.class}
-                onClick={() => { setSelectedClass(cls.class); setResultView("students"); }}
-                className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-all cursor-pointer group"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#E8F4F8] flex items-center justify-center group-hover:bg-[#1B6B8A] transition-colors">
-                      <span className="text-[#1B6B8A] group-hover:text-white transition-colors" style={{ fontSize: "14px", fontWeight: 700 }}>{cls.class}</span>
+          {classes.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {classes.map((cls) => (
+                <div
+                  key={cls.id}
+                  onClick={() => { setSelectedClass(cls.name); setResultView("students"); }}
+                  className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-all cursor-pointer group"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-[#E8F4F8] flex items-center justify-center group-hover:bg-[#1B6B8A] transition-colors">
+                        <span className="text-[#1B6B8A] group-hover:text-white transition-colors" style={{ fontSize: "14px", fontWeight: 700 }}>{cls.name}</span>
+                      </div>
+                      <div>
+                        <p style={{ fontSize: "15px", fontWeight: 600 }}>{cls.name}</p>
+                        <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{cls.totalStudents} students</p>
+                      </div>
                     </div>
-                    <div>
-                      <p style={{ fontSize: "15px", fontWeight: 600 }}>{cls.class}</p>
-                      <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{cls.students} students</p>
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#1B6B8A]" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground" style={{ fontSize: "12px" }}>Class Average</span>
+                      <span className="text-[#1B6B8A]" style={{ fontSize: "14px", fontWeight: 600 }}>0%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground" style={{ fontSize: "12px" }}>Pass Rate</span>
+                      <span className="text-green-600" style={{ fontSize: "13px", fontWeight: 500 }}>0%</span>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#1B6B8A]" />
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground" style={{ fontSize: "12px" }}>Class Average</span>
-                    <span className="text-[#1B6B8A]" style={{ fontSize: "14px", fontWeight: 600 }}>{cls.avgScore}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground" style={{ fontSize: "12px" }}>Pass Rate</span>
-                    <span className="text-green-600" style={{ fontSize: "13px", fontWeight: 500 }}>{cls.passRate}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground" style={{ fontSize: "12px" }}>Highest / Lowest</span>
-                    <span style={{ fontSize: "12px" }}><span className="text-green-600">{cls.highestAvg}%</span> / <span className="text-red-500">{cls.lowestAvg}%</span></span>
+                  <div className="mt-3">
+                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-green-500 rounded-full" style={{ width: `0%` }} />
+                    </div>
                   </div>
                 </div>
-                <div className="mt-3">
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: `${cls.passRate}%` }} />
-                  </div>
-                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-dashed border-border py-20 text-center">
+              <div className="w-16 h-16 bg-[#F5F7FA] rounded-full flex items-center justify-center mx-auto mb-4">
+                <School className="w-8 h-8 text-muted-foreground" />
               </div>
-            ))}
-          </div>
+              <h3 className="text-lg font-semibold mb-1">No classes found</h3>
+              <p className="text-muted-foreground mb-6">Create classes first to view examination results</p>
+              <button onClick={() => navigate("/classes")} className="px-6 py-2 bg-[#1B6B8A] text-white rounded-lg hover:bg-[#155a74]">Go to Classes</button>
+            </div>
+          )}
         </>
       )}
 

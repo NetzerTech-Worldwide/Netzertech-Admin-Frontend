@@ -3,8 +3,9 @@ import {
   Search, Plus, Download, Eye, Edit, Trash2, DollarSign,
   TrendingUp, AlertCircle, CheckCircle, X, FileText, Send,
   Globe, Users, GraduationCap, Percent, Building, Mail,
-  Printer, Bell, Tag, PieChart, TrendingDown, Calendar,
+  Printer, Bell, Tag, PieChart, TrendingDown, Calendar, Loader2, School,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
@@ -12,7 +13,6 @@ import api from "../../utils/api";
 
 const sessions = ["2025/2026", "2024/2025", "2023/2024"];
 const termsOptions = ["First Term", "Second Term", "Third Term"];
-const classLevels = ["JSS 1A", "JSS 1B", "JSS 2A", "JSS 2B", "JSS 3A", "JSS 3B", "SS 1A", "SS 1B", "SS 2A", "SS 2B", "SS 3A", "SS 3B"];
 
 interface BillItem {
   name: string;
@@ -40,8 +40,6 @@ interface Bill {
   partialCount: number;
 }
 
-
-
 interface PaymentBreakdown {
   component: string;
   amount: number;
@@ -63,9 +61,7 @@ interface PaymentRecord {
 }
 
 const monthlyRevenue: { month: string; amount: number }[] = [];
-
 const revenueBreakdown: { source: string; amount: number; percentage: number; color: string }[] = [];
-
 const tabs = ["Bill Management", "Payment Tracking", "Fee History", "Revenue", "Reminders", "Discounts", "Receipts"];
 
 export function Finance() {
@@ -84,7 +80,7 @@ export function Finance() {
   const [paymentRecords, setPaymentRecords] = useState<PaymentRecord[]>([]);
   const [allStudentsList, setAllStudentsList] = useState<{ name: string; class: string }[]>([]);
   const [newBillItems, setNewBillItems] = useState<BillItem[]>([{ name: "", amount: 0 }]);
-  const [newBillClass, setNewBillClass] = useState("SS 1A");
+  const [newBillClass, setNewBillClass] = useState("");
   const [newBillTitle, setNewBillTitle] = useState("");
   const [newBillTargetType, setNewBillTargetType] = useState<"student" | "teacher">("student");
   const [newBillIsUniversal, setNewBillIsUniversal] = useState(false);
@@ -112,6 +108,28 @@ export function Finance() {
   const [paymentDate, setPaymentDate] = useState("");
   const [paymentRef, setPaymentRef] = useState("");
 
+  const [classes, setClasses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchDependencies = async () => {
+      setIsLoading(true);
+      try {
+        const response = await api.get("/admin/classes/overview");
+        setClasses(response || []);
+        if (response && response.length > 0) {
+          setNewBillClass(response[0].name);
+        }
+      } catch (err) {
+        console.error("Failed to fetch finance dependencies:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDependencies();
+  }, []);
+
   useEffect(() => {
     fetchBills();
     fetchPayments();
@@ -122,7 +140,7 @@ export function Finance() {
     try {
       const params = new URLSearchParams({ session: sessionFilter, term: termFilter }).toString();
       const data = await api.get(`/admin/finance/bills?${params}`);
-      setBills(data);
+      setBills(data || []);
     } catch (error) {
       console.error("Error fetching bills:", error);
     }
@@ -131,7 +149,7 @@ export function Finance() {
   const fetchPayments = async () => {
     try {
       const data = await api.get('/admin/finance/payments');
-      setPaymentRecords(data);
+      setPaymentRecords(data || []);
     } catch (error) {
       console.error("Error fetching payments:", error);
     }
@@ -140,7 +158,7 @@ export function Finance() {
   const fetchStudents = async () => {
     try {
       const data = await api.get('/admin/students');
-      setAllStudentsList(data.map((s: any) => ({ name: s.name, class: s.class })));
+      setAllStudentsList(data?.map((s: any) => ({ name: s.name, class: s.class })) || []);
     } catch (error) {
       console.error("Error fetching students:", error);
     }
@@ -160,8 +178,6 @@ export function Finance() {
         items: newBillItems,
       });
       
-      // Assume latest bill if publish is true we would patch it
-      // For simplicity, we just fetch again
       await fetchBills();
       setShowCreateBill(false);
       resetBillForm();
@@ -243,6 +259,27 @@ export function Finance() {
     switch (s) { case "Paid": return "bg-green-50 text-green-700"; case "Partial": return "bg-yellow-50 text-yellow-700"; case "Unpaid": return "bg-red-50 text-red-700"; case "Published": return "bg-green-50 text-green-700"; case "Draft": return "bg-gray-100 text-gray-700"; case "Archived": return "bg-blue-50 text-blue-700"; default: return "bg-gray-50 text-gray-700"; }
   };
 
+  if (isLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B6B8A]" />
+      </div>
+    );
+  }
+
+  if (classes.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-dashed border-border py-20 text-center">
+        <div className="w-16 h-16 bg-[#F5F7FA] rounded-full flex items-center justify-center mx-auto mb-4">
+          <School className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold mb-1">No classes found</h3>
+        <p className="text-muted-foreground mb-6">Create classes first to manage financial records and bills</p>
+        <button onClick={() => navigate("/classes")} className="px-6 py-2 bg-[#1B6B8A] text-white rounded-lg hover:bg-[#155a74]">Go to Classes</button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -270,7 +307,7 @@ export function Finance() {
         </select>
         <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
           <option value="All">All Classes</option>
-          {classLevels.map((c) => <option key={c} value={c}>{c}</option>)}
+          {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
       </div>
 

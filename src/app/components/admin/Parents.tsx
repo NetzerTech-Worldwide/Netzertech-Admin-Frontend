@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Download, Mail, Phone, Users, Eye, X } from "lucide-react";
+import { Search, Plus, Download, Mail, Phone, Users, Eye, X, School, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import api from "../../utils/api";
 
 type ParentType = { id: string; name: string; phone: string; email: string; children: string[]; occupation: string; status: string };
-
-const classLevels = ["JSS 1A", "JSS 1B", "JSS 2A", "JSS 2B", "JSS 3A", "JSS 3B", "SS 1A", "SS 1B", "SS 2A", "SS 2B", "SS 3A", "SS 3B"];
-
-const studentsByClass: Record<string, string[]> = {};
 
 export function Parents() {
   const [allParents, setAllParents] = useState<ParentType[]>([]);
@@ -14,28 +11,58 @@ export function Parents() {
   const [showDetail, setShowDetail] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedClassForChild, setSelectedClassForChild] = useState<string>("");
+  const [classes, setClasses] = useState<any[]>([]);
+  const [studentsByClass, setStudentsByClass] = useState<Record<string, string[]>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchParents();
+    const fetchDependencies = async () => {
+      setIsLoading(true);
+      try {
+        const [parentsRes, classesRes] = await Promise.all([
+          api.get('/admin/parents'),
+          api.get('/admin/classes/overview')
+        ]);
+        
+        const mappedParents = parentsRes.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          phone: p.phone,
+          email: p.email,
+          children: p.children ? p.children.split(',').map((c: string) => c.trim()) : [],
+          occupation: p.occupation,
+          status: p.status
+        }));
+        setAllParents(mappedParents);
+        setClasses(classesRes || []);
+      } catch (error) {
+        console.error("Error fetching dependencies:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDependencies();
   }, []);
 
-  const fetchParents = async () => {
+  const fetchStudentsForClass = async (className: string) => {
+    if (studentsByClass[className]) return;
     try {
-      const response = await api.get('/admin/parents');
-      const mappedParents = response.data.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        phone: p.phone,
-        email: p.email,
-        children: p.children ? p.children.split(',').map((c: string) => c.trim()) : [],
-        occupation: p.occupation,
-        status: p.status
+      const response = await api.get(`/admin/students?class=${className}`);
+      setStudentsByClass(prev => ({
+        ...prev,
+        [className]: response.map((s: any) => s.name)
       }));
-      setAllParents(mappedParents);
     } catch (error) {
-      console.error("Error fetching parents:", error);
+      console.error("Error fetching students:", error);
     }
   };
+
+  useEffect(() => {
+    if (selectedClassForChild) {
+      fetchStudentsForClass(selectedClassForChild);
+    }
+  }, [selectedClassForChild]);
 
   const filtered = allParents.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,6 +70,27 @@ export function Parents() {
   );
 
   const selectedParent = allParents.find(p => p.id === showDetail);
+
+  if (isLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B6B8A]" />
+      </div>
+    );
+  }
+
+  if (classes.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-dashed border-border py-20 text-center">
+        <div className="w-16 h-16 bg-[#F5F7FA] rounded-full flex items-center justify-center mx-auto mb-4">
+          <School className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold mb-1">No classes found</h3>
+        <p className="text-muted-foreground mb-6">Create classes first to manage parents and students</p>
+        <button onClick={() => navigate("/classes")} className="px-6 py-2 bg-[#1B6B8A] text-white rounded-lg hover:bg-[#155a74]">Go to Classes</button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -233,7 +281,7 @@ export function Parents() {
                 <div className="mt-2">
                   <select value={selectedClassForChild} onChange={(e) => setSelectedClassForChild(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-white" style={{ fontSize: "13px" }}>
                     <option value="">-- Select Class First --</option>
-                    {classLevels.map((cls) => <option key={cls} value={cls}>{cls}</option>)}
+                    {classes.map((cls) => <option key={cls.id} value={cls.name}>{cls.name}</option>)}
                   </select>
                 </div>
                 {selectedClassForChild && (
@@ -244,6 +292,8 @@ export function Parents() {
                         <span style={{ fontSize: "13px" }}>{student}</span>
                       </label>
                     ))}
+                    {!studentsByClass[selectedClassForChild] && <div className="p-2 text-center text-muted-foreground" style={{ fontSize: "12px" }}>Loading students...</div>}
+                    {studentsByClass[selectedClassForChild]?.length === 0 && <div className="p-2 text-center text-muted-foreground" style={{ fontSize: "12px" }}>No students in this class</div>}
                   </div>
                 )}
               </div>
