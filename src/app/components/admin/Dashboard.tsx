@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   GraduationCap,
@@ -10,6 +10,7 @@ import {
   Calendar,
   Clock,
   FileCheck,
+  Loader2,
 } from "lucide-react";
 import {
   BarChart,
@@ -26,29 +27,50 @@ import {
   Line,
 } from "recharts";
 import { generateAcademicSessions, terms } from "../../utils/academicSessions";
+import api from "../../utils/api";
 
-const stats = [
-  { label: "Total Students", value: "0", change: "0%", icon: Users, color: "#1B6B8A", bg: "#E8F4F8", up: false },
-  { label: "Total Teachers", value: "0", change: "0%", icon: GraduationCap, color: "#22C55E", bg: "#ECFDF5", up: false },
-  { label: "Total Parents", value: "0", change: "0%", icon: UserCheck, color: "#F59E0B", bg: "#FEF9C3", up: false },
-  { label: "Total Classes", value: "0", change: "0%", icon: BookOpen, color: "#8B5CF6", bg: "#F3E8FF", up: false },
-];
-
-const enrollmentData: { id: string; month: string; students: number }[] = [];
-
-const attendanceData: { id: string; name: string; value: number; color: string }[] = [];
-
-const performanceData: { id: string; subject: string; avg: number }[] = [];
-
-const pendingApprovals: { type: string; subject: string; teacher: string; date: string; priority: string }[] = [];
-
-const recentActivities: { action: string; name: string; time: string }[] = [];
-
-const upcomingEvents: { title: string; date: string; time: string }[] = [];
+const iconMap: Record<string, any> = {
+  Users,
+  GraduationCap,
+  UserCheck,
+  BookOpen,
+};
 
 export function Dashboard() {
   const [session, setSession] = useState("2025/2026");
   const [term, setTerm] = useState("Second Term");
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get("/admin/dashboard-stats");
+        setDashboardData(response);
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="h-[60vh] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#1B6B8A]" />
+      </div>
+    );
+  }
+
+  const stats = dashboardData?.stats || [];
+  const recentActivities = dashboardData?.recentActivities || [];
+  const enrollmentData: any[] = []; 
+  const attendanceData: any[] = [];
+  const performanceData: any[] = [];
+  const pendingApprovals: any[] = [];
+  const upcomingEvents: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -84,29 +106,32 @@ export function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl p-5 border border-border shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-muted-foreground" style={{ fontSize: "13px" }}>{stat.label}</p>
-                <h2 className="mt-1" style={{ fontSize: "28px", fontWeight: 700 }}>{stat.value}</h2>
-                <div className="flex items-center gap-1 mt-2">
-                  {stat.up ? (
-                    <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                  ) : (
-                    <TrendingDown className="w-3.5 h-3.5 text-gray-400" />
-                  )}
-                  <span className={stat.up ? "text-green-500" : "text-gray-400"} style={{ fontSize: "12px" }}>
-                    {stat.change} from last session
-                  </span>
+        {stats.map((stat: any) => {
+          const Icon = iconMap[stat.icon] || Users;
+          return (
+            <div key={stat.label} className="bg-white rounded-xl p-5 border border-border shadow-sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-muted-foreground" style={{ fontSize: "13px" }}>{stat.label}</p>
+                  <h2 className="mt-1" style={{ fontSize: "28px", fontWeight: 700 }}>{stat.value}</h2>
+                  <div className="flex items-center gap-1 mt-2">
+                    {stat.up ? (
+                      <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                      <TrendingDown className="w-3.5 h-3.5 text-gray-400" />
+                    )}
+                    <span className={stat.up ? "text-green-500" : "text-gray-400"} style={{ fontSize: "12px" }}>
+                      {stat.change} from last session
+                    </span>
+                  </div>
+                </div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: stat.bg }}>
+                  <Icon className="w-5 h-5" style={{ color: stat.color }} />
                 </div>
               </div>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: stat.bg }}>
-                <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
-              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Pending Approvals Banner */}
@@ -158,7 +183,7 @@ export function Dashboard() {
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
               <Pie data={attendanceData} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
-                {attendanceData.map((entry) => (
+                {attendanceData.map((entry: any) => (
                   <Cell key={entry.id} fill={entry.color} />
                 ))}
               </Pie>
@@ -222,7 +247,7 @@ export function Dashboard() {
           <button className="text-[#1B6B8A]" style={{ fontSize: "13px" }}>View All</button>
         </div>
         <div className="space-y-3">
-          {recentActivities.map((activity, i) => (
+          {recentActivities.map((activity: any, i: number) => (
             <div key={i} className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#E8F4F8] flex items-center justify-center">

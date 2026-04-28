@@ -100,7 +100,9 @@ export function AdminLayout() {
     "Operations",
     "Settings",
   ]);
+  const [profile, setProfile] = useState<any>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleSection = (sectionTitle: string) => {
     setOpenSections(prev =>
@@ -109,6 +111,28 @@ export function AdminLayout() {
         : [...prev, sectionTitle]
     );
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("/auth/profile");
+        setProfile(response);
+      } catch (err) {
+        console.error("Failed to fetch profile:", err);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_token");
+    navigate("/login");
+  };
+
+  // Extract school name from address if present (it's stored as "School Name (Size: Size)")
+  const schoolDisplay = profile?.address ? profile.address.split(" (Size:")[0] : "NetzerTech";
+  const adminName = profile?.fullName || "Admin User";
+  const adminRole = profile?.department || "Super Admin";
 
   // Regenerate available sessions when component mounts or session/term changes
   useEffect(() => {
@@ -203,7 +227,7 @@ export function AdminLayout() {
             <span className="text-white" style={{ fontSize: "14px", fontWeight: 700 }}>N</span>
           </div>
           <div>
-            <h3 className="text-[#1B6B8A]" style={{ fontSize: "15px", fontWeight: 700, lineHeight: "1.2" }}>NetzerTech</h3>
+            <h3 className="text-[#1B6B8A]" style={{ fontSize: "15px", fontWeight: 700, lineHeight: "1.2" }}>{schoolDisplay}</h3>
             <p className="text-[#1B6B8A]/60" style={{ fontSize: "8px", fontWeight: 500, letterSpacing: "1px" }}>VERSACORE PROVIDEX</p>
           </div>
           <button
@@ -284,7 +308,7 @@ export function AdminLayout() {
 
         {/* Logout */}
         <div className="px-4 py-4 border-t border-border">
-          <button className="flex items-center gap-3 w-full px-4 py-2.5 rounded-full bg-[#E8F4F8] text-[#1B6B8A] hover:bg-[#d0e8ef] transition-colors">
+          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-2.5 rounded-full bg-[#E8F4F8] text-[#1B6B8A] hover:bg-[#d0e8ef] transition-colors">
             <LogOut className="w-[18px] h-[18px]" />
             <span style={{ fontSize: "14px" }}>Log Out</span>
           </button>
@@ -347,12 +371,12 @@ export function AdminLayout() {
             {/* Admin Profile */}
             <div className="flex items-center gap-2 cursor-pointer">
               <div className="w-9 h-9 rounded-full bg-[#1B6B8A] flex items-center justify-center">
-                <span className="text-white" style={{ fontSize: "13px", fontWeight: 600 }}>AD</span>
+                <span className="text-white" style={{ fontSize: "13px", fontWeight: 600 }}>{adminName.substring(0, 2).toUpperCase()}</span>
               </div>
               <div className="hidden sm:block">
-                <p style={{ fontSize: "13px", fontWeight: 500 }}>Admin User</p>
+                <p style={{ fontSize: "13px", fontWeight: 500 }}>{adminName}</p>
                 <p className="text-muted-foreground" style={{ fontSize: "11px" }}>
-                  Super Admin
+                  {adminRole}
                 </p>
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />

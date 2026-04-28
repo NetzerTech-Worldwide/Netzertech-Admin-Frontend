@@ -9,7 +9,6 @@ export const Signup: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
     schoolName: "",
     role: "",
     schoolSize: "",
@@ -25,10 +24,6 @@ export const Signup: React.FC = () => {
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1) {
-      if (formData.password.length < 8) {
-        setError("Password must be at least 8 characters long.");
-        return;
-      }
       setError(null);
       setStep(2);
     }
@@ -126,25 +121,6 @@ export const Signup: React.FC = () => {
                         placeholder="school@example.com"
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-slate-400" />
-                      </div>
-                      <input
-                        type="password"
-                        name="password"
-                        required
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#216388]/20 focus:border-[#216388] transition-all"
-                        placeholder="••••••••"
-                      />
-                    </div>
-                    <p className="mt-2 text-xs text-slate-400">At least 8 characters long</p>
                   </div>
 
                   <button

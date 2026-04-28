@@ -65,16 +65,19 @@ export function Students() {
   };
 
   const studentsInClass = selectedClass
-    ? allStudents.filter((s) => s.class === selectedClass)
-    : allStudents;
+    ? (Array.isArray(allStudents) ? allStudents : []).filter((s) => s.class === selectedClass)
+    : (Array.isArray(allStudents) ? allStudents : []);
 
   const filtered = studentsInClass.filter((s) => {
-    const matchSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const studentName = s.name || "";
+    const studentId = s.id || "";
+    const matchSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      studentId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === "All" || s.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const totalStudents = classInfo.reduce((s, c) => s + c.totalStudents, 0);
+  const totalStudents = Array.isArray(classInfo) ? classInfo.reduce((s, c) => s + (c.totalStudents || 0), 0) : 0;
 
   const statusColor = (status: string) => {
     switch (status) {
