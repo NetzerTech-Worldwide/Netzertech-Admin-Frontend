@@ -2,11 +2,18 @@ const getBaseUrl = () => {
   let url = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
   
   // Clean up the URL if it contains /api-docs (common misconfiguration)
-  if (url.endsWith('/api-docs')) {
-    url = url.replace('/api-docs', '/api/v1');
+  if (url.includes('/api-docs')) {
+    url = url.replace('/api-docs', '');
   }
   
-  // Ensure it doesn't end with a slash to avoid double slashes in fetch
+  // Ensure it ends with /api/v1
+  if (!url.includes('/api/v1')) {
+    // Remove trailing slash if present
+    const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+    url = `${cleanUrl}/api/v1`;
+  }
+  
+  // Final check to remove trailing slash from the combined URL
   return url.endsWith('/') ? url.slice(0, -1) : url;
 };
 
