@@ -112,6 +112,8 @@ export function Finance() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const classLevels = Array.isArray(classes) ? Array.from(new Set(classes.map(c => c.name))).sort() : [];
+
   useEffect(() => {
     const fetchDependencies = async () => {
       setIsLoading(true);
@@ -307,7 +309,7 @@ export function Finance() {
         </select>
         <select value={classFilter} onChange={(e) => setClassFilter(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
           <option value="All">All Classes</option>
-          {classes.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+          {(Array.isArray(classes) ? classes : []).map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
         </select>
       </div>
 
@@ -350,7 +352,7 @@ export function Finance() {
               <p className="text-muted-foreground" style={{ fontSize: "13px" }}>Create a new bill to get started</p>
             </div>
           ) : (
-            filteredBills.map((bill) => (
+            (Array.isArray(filteredBills) ? filteredBills : []).map((bill) => (
               <div key={bill.id} className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="flex gap-4">
@@ -497,7 +499,7 @@ export function Finance() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredPayments.map((rec) => (
+                  {(Array.isArray(filteredPayments) ? filteredPayments : []).map((rec) => (
                     <tr key={rec.id} className={`border-b border-border hover:bg-gray-50 ${rec.balance > 0 ? "bg-red-50/30" : ""}`}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -544,7 +546,7 @@ export function Finance() {
             </div>
           </div>
           <div className="space-y-3">
-            {paymentRecords
+            {(Array.isArray(paymentRecords) ? paymentRecords : [])
               .filter(r => r.status !== "Unpaid" && r.student.toLowerCase().includes(searchTerm.toLowerCase()))
               .map((rec) => (
               <div key={rec.id} className="bg-white rounded-xl border border-border shadow-sm p-5">
@@ -568,7 +570,7 @@ export function Finance() {
                 <div className="mt-3 pt-3 border-t border-border">
                   <p className="text-muted-foreground mb-2" style={{ fontSize: "12px", fontWeight: 600 }}>Payment Breakdown</p>
                   <div className="space-y-1">
-                    {rec.breakdown.map((item, i) => (
+                    {(Array.isArray(rec.breakdown) ? rec.breakdown : []).map((item, i) => (
                       <div key={i} className="flex items-center justify-between py-1.5 px-3 bg-[#F5F7FA] rounded-lg">
                         <span style={{ fontSize: "12px" }}>{item.component}</span>
                         <span style={{ fontSize: "12px", fontWeight: 500 }}>{"\u20A6"}{item.amount.toLocaleString()}</span>
@@ -707,7 +709,7 @@ export function Finance() {
           </div>
 
           <div className="space-y-3">
-            {paymentRecords.filter(p => p.balance > 0).map((rec) => (
+            {(Array.isArray(paymentRecords) ? paymentRecords : []).filter(p => p.balance > 0).map((rec) => (
               <div key={rec.id} className="bg-white rounded-xl border border-red-200 shadow-sm p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex gap-4 flex-1">
@@ -790,7 +792,7 @@ export function Finance() {
           </div>
 
           <div className="space-y-3">
-            {paymentRecords.filter(p => p.status !== "Unpaid" && p.student.toLowerCase().includes(searchTerm.toLowerCase())).map((rec) => (
+            {(Array.isArray(paymentRecords) ? paymentRecords : []).filter(p => p.status !== "Unpaid" && p.student.toLowerCase().includes(searchTerm.toLowerCase())).map((rec) => (
               <div key={rec.id} className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex gap-4 flex-1">
@@ -842,10 +844,10 @@ export function Finance() {
                 {showBillDetail.targetType === "teacher" && <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 text-purple-700" style={{ fontSize: "10px", fontWeight: 600 }}><GraduationCap className="w-3 h-3" /> Teacher</span>}
               </div>
               <h4 style={{ fontSize: "15px", fontWeight: 600 }}>{showBillDetail.title}</h4>
-              <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{showBillDetail.session} &middot; {showBillDetail.term}</p>
+              <p className="text-muted-foreground mt-0.5" style={{ fontSize: "12px" }}>{showBillDetail.session} &middot; {showBillDetail.term}</p>
               <div className="mt-4 space-y-2">
                 <p style={{ fontSize: "13px", fontWeight: 600 }}>Fee Breakdown</p>
-                {showBillDetail.items.map((item, i) => (
+                {(Array.isArray(showBillDetail.items) ? showBillDetail.items : []).map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-2 px-3 bg-[#F5F7FA] rounded-lg">
                     <span style={{ fontSize: "13px" }}>{item.name}</span>
                     <span style={{ fontSize: "13px", fontWeight: 500 }}>{"\u20A6"}{item.amount.toLocaleString()}</span>
@@ -910,7 +912,7 @@ export function Finance() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                {showFeeDetail.breakdown.map((item, i) => (
+                {(Array.isArray(showFeeDetail.breakdown) ? showFeeDetail.breakdown : []).map((item, i) => (
                   <div key={i} className="flex items-center justify-between py-2 px-3 bg-[#F5F7FA] rounded-lg">
                     <span style={{ fontSize: "13px" }}>{item.component}</span>
                     <span className="text-green-600" style={{ fontSize: "13px", fontWeight: 500 }}>{"\u20A6"}{item.amount.toLocaleString()}</span>
@@ -981,7 +983,10 @@ export function Finance() {
                 <div><label style={{ fontSize: "13px" }}>Session</label><select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>{sessions.map(s => <option key={s}>{s}</option>)}</select></div>
                 <div><label style={{ fontSize: "13px" }}>Term</label><select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>{termsOptions.map(t => <option key={t}>{t}</option>)}</select></div>
                 {!newBillIsUniversal && newBillTargetType === "student" && (
-                  <div><label style={{ fontSize: "13px" }}>Class</label><select value={newBillClass} onChange={(e) => setNewBillClass(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>{classLevels.map(c => <option key={c}>{c}</option>)}</select></div>
+                  <div><label style={{ fontSize: "13px" }}>Class</label><select value={newBillClass} onChange={(e) => setNewBillClass(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>{(() => {
+                    const classLevels = Array.from(new Set(allStudentsList.map(s => s.class)));
+                    return classLevels.map(c => <option key={c} value={c}>{c}</option>);
+                  })()}</select></div>
                 )}
               </div>
 
@@ -993,7 +998,7 @@ export function Finance() {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {newBillItems.map((item, i) => (
+                  {(Array.isArray(newBillItems) ? newBillItems : []).map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <input placeholder="Fee name" value={item.name} onChange={(e) => updateBillItem(i, "name", e.target.value)} className="flex-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                       <div className="relative w-[140px]">
@@ -1090,15 +1095,18 @@ export function Finance() {
                   <label style={{ fontSize: "13px" }}>Class</label>
                   <select value={paymentClassFilter} onChange={(e) => setPaymentClassFilter(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                     <option value="All">All Classes</option>
-                    {classLevels.map(c => <option key={c} value={c}>{c}</option>)}
+                    {(() => {
+                      const classLevels = Array.from(new Set(allStudentsList.map(s => s.class)));
+                      return classLevels.map(c => <option key={c} value={c}>{c}</option>);
+                    })()}
                   </select>
                 </div>
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Student</label>
-                <select value={paymentStudent} onChange={e => setPaymentStudent(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                <select value={paymentStudent} onChange={(e) => setPaymentStudent(e.target.value)} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="">Select Student</option>
-                  {filteredStudents.map((s, i) => <option key={i} value={s.name}>{s.name} ({s.class})</option>)}
+                  {(Array.isArray(filteredStudents) ? filteredStudents : []).map((s, i) => <option key={i} value={s.name}>{s.name} ({s.class})</option>)}
                 </select>
                 <p className="text-muted-foreground mt-1" style={{ fontSize: "11px" }}>{filteredStudents.length} students found</p>
               </div>

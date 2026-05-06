@@ -49,7 +49,7 @@ export function TechnicalSupport() {
   const fetchTickets = async () => {
     try {
       const data = await api.get('/support/tickets');
-      setTickets(data.map((t: any) => ({
+      setTickets((Array.isArray(data) ? data : []).map((t: any) => ({
         ...t,
         id: t.ticketId,
         title: t.subject,
@@ -64,7 +64,7 @@ export function TechnicalSupport() {
     }
   };
 
-  const filteredTickets = tickets.filter((t) => {
+  const filteredTickets = (Array.isArray(tickets) ? tickets : []).filter((t) => {
     const matchSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) || t.reportedBy.toLowerCase().includes(searchTerm.toLowerCase()) || t.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === "All" || t.status === statusFilter;
     const matchCategory = categoryFilter === "All" || t.category === categoryFilter;
@@ -328,7 +328,7 @@ export function TechnicalSupport() {
                   <p className="text-muted-foreground italic" style={{ fontSize: "13px" }}>No notes yet</p>
                 ) : (
                   <div className="space-y-2">
-                    {showDetailModal.notes.map((note, i) => (
+                    {(Array.isArray(showDetailModal.notes) ? showDetailModal.notes : []).map((note, i) => (
                       <div key={i} className="p-3 bg-[#F5F7FA] rounded-lg border border-border">
                         <p style={{ fontSize: "13px" }}>{note}</p>
                       </div>

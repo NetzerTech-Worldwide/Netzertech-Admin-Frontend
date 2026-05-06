@@ -165,7 +165,7 @@ export function Approvals() {
                   <cat.icon className="w-4 h-4 shrink-0" />
                   <span className="flex-1">{cat.label}</span>
                   <span className={`px-1.5 py-0.5 rounded-full ${selectedCategory === cat.id ? "bg-[#1B6B8A] text-white" : "bg-gray-100 text-gray-600"}`} style={{ fontSize: "10px" }}>
-                    {cat.id === "all" ? approvals.length : approvals.filter((a) => a.type === cat.id).length}
+                    {cat.id === "all" ? (Array.isArray(approvals) ? approvals.length : 0) : (Array.isArray(approvals) ? approvals.filter((a) => a.type === cat.id).length : 0)}
                   </span>
                 </button>
               );
@@ -270,7 +270,7 @@ export function Approvals() {
                   {isExpanded && (
                     <div className="border-t border-border bg-[#FAFBFC] p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {Object.entries(approval.details).map(([key, value]) => (
+                        {Object.entries(approval.details || {}).map(([key, value]) => (
                           <div key={key} className="flex justify-between py-1.5 px-3 bg-white rounded-lg border border-border">
                             <span className="text-muted-foreground" style={{ fontSize: "12px" }}>{key}</span>
                             <span style={{ fontSize: "12px", fontWeight: 500 }}>{value}</span>

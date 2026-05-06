@@ -142,7 +142,7 @@ export function AcademicRecords() {
 
               {/* Class Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {classes.map((record) => (
+                {(Array.isArray(classes) ? classes : []).map((record) => (
                   <div
                     key={record.id}
                     onClick={() => { setSelectedClass(record.name); setView("classResults"); }}
@@ -305,7 +305,7 @@ export function AcademicRecords() {
           </div>
 
           {/* Term Tables */}
-          {selectedTranscript.terms.map((term, termIdx) => (
+          {(selectedTranscript?.terms || []).map((term: any, termIdx: number) => (
             <div key={termIdx} className="flex flex-col">
               {/* Table Header */}
               <div className="bg-white border-l border-r border-b border-[#dcdee1] px-6 py-4">
@@ -319,7 +319,7 @@ export function AcademicRecords() {
               </div>
 
               {/* Subject Rows */}
-              {term.subjects.map((subj, si) => (
+              {(term.subjects || []).map((subj: any, si: number) => (
                 <div key={si} className="bg-white border-l border-r border-[#dcdee1] px-6 py-5 border-t border-t-[#dcdee1]">
                   <div className="flex items-center">
                     <p className="w-[220px] text-black" style={{ fontSize: "15px", fontWeight: 500 }}>{subj.name}</p>
@@ -365,7 +365,7 @@ export function AcademicRecords() {
           <div className="bg-white rounded-xl border border-border shadow-sm p-5">
             <h3 style={{ fontSize: "15px", fontWeight: 600 }} className="mb-3">Available Transcripts</h3>
             <div className="space-y-2">
-              {Object.values(transcriptData)
+              {(Array.isArray(Object.values(transcriptData)) ? Object.values(transcriptData) : [])
                 .filter((s) => s.name.toLowerCase().includes(transcriptSearch.toLowerCase()) || s.id.toLowerCase().includes(transcriptSearch.toLowerCase()))
                 .map((student) => (
                 <div
