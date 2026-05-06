@@ -122,7 +122,30 @@ export function Attendance() {
     return cls.name.startsWith(classLevelFilter);
   });
 
-  // ... (rest of helper functions)
+  // Helper functions for UI styling
+  const attendanceColor = (rate: number) => {
+    if (rate >= 90) return "text-green-600";
+    if (rate >= 75) return "text-yellow-600";
+    return "text-red-500";
+  };
+
+  const attendanceBg = (rate: number) => {
+    if (rate >= 90) return "bg-green-50 border-green-200";
+    if (rate >= 75) return "bg-yellow-50 border-yellow-200";
+    return "bg-red-50 border-red-200";
+  };
+
+  const dayStatusColor = (status: string | null) => {
+    switch (status) {
+      case "present": return "bg-green-500 text-white";
+      case "absent": return "bg-red-500 text-white";
+      case "late": return "bg-yellow-400 text-white";
+      case "excused": return "bg-[#1B6B8A] text-white";
+      case "weekend": return "bg-gray-100 border border-gray-200 text-muted-foreground";
+      case "future": return "bg-gray-50 text-gray-300";
+      default: return "bg-white border border-dashed border-gray-200";
+    }
+  };
 
   return (
     <div className="space-y-4">
