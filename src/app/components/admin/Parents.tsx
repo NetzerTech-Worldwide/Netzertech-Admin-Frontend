@@ -25,19 +25,22 @@ export function Parents() {
           api.get('/admin/classes/overview')
         ]);
         
-        const mappedParents = parentsRes.data.map((p: any) => ({
+        const parentsData = Array.isArray(parentsRes.data) ? parentsRes.data : (Array.isArray(parentsRes) ? parentsRes : []);
+        const mappedParents = parentsData.map((p: any) => ({
           id: p.id,
           name: p.name,
           phone: p.phone,
           email: p.email,
           children: p.children ? p.children.split(',').map((c: string) => c.trim()) : [],
           occupation: p.occupation,
-          status: p.status
+          status: p.status || "Active"
         }));
         setAllParents(mappedParents);
-        setClasses(classesRes || []);
+        setClasses(Array.isArray(classesRes?.data) ? classesRes.data : (Array.isArray(classesRes) ? classesRes : []));
       } catch (error) {
         console.error("Error fetching dependencies:", error);
+        setAllParents([]);
+        setClasses([]);
       } finally {
         setIsLoading(false);
       }
@@ -49,12 +52,14 @@ export function Parents() {
     if (studentsByClass[className]) return;
     try {
       const response = await api.get(`/admin/students?class=${className}`);
+      const studentsData = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
       setStudentsByClass(prev => ({
         ...prev,
-        [className]: response.map((s: any) => s.name)
+        [className]: studentsData.map((s: any) => s.name)
       }));
     } catch (error) {
       console.error("Error fetching students:", error);
+      setStudentsByClass(prev => ({ ...prev, [className]: [] }));
     }
   };
 

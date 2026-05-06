@@ -22,8 +22,9 @@ export function Teachers() {
   const fetchTeachers = async () => {
     try {
       const response = await api.get('/admin/teachers');
+      const data = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.data) ? response.data.data : []);
       // Map API response to component state shape
-      const mappedTeachers = response.data.map((t: any) => ({
+      const mappedTeachers = data.map((t: any) => ({
         id: t.id,
         name: t.name,
         subject: t.subjects || "Various",
@@ -31,7 +32,7 @@ export function Teachers() {
         qualification: "B.Sc / B.Ed", // default since backend might not have this
         experience: "5 years",
         gender: "Not specified",
-        status: t.status,
+        status: t.status || "Active",
         email: t.email,
         phone: t.phone,
         joinDate: t.joined
@@ -39,6 +40,7 @@ export function Teachers() {
       setTeachers(mappedTeachers);
     } catch (error) {
       console.error("Error fetching teachers:", error);
+      setTeachers([]);
     }
   };
 

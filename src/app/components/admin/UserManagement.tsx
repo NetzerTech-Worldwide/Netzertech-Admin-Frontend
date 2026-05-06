@@ -40,9 +40,11 @@ export function UserManagement() {
   const fetchUsers = async () => {
     try {
       const response = await api.get('/admin/system-users');
-      setUsers(response.data);
+      const data = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
+      setUsers(data);
     } catch (error) {
       console.error("Error fetching system users:", error);
+      setUsers([]);
     }
   };
 
