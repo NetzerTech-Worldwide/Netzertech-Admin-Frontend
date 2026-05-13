@@ -37,7 +37,7 @@ export function Teachers() {
   const fetchTeachers = async () => {
     try {
       const response = await api.get('/admin/teachers');
-      const data = Array.isArray(response.data) ? response.data : (Array.isArray(response.data?.data) ? response.data.data : []);
+      const data = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
       // Map API response to component state shape
       const mappedTeachers = data.map((t: any) => ({
         id: t.id,
