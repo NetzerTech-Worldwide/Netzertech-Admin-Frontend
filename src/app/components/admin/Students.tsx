@@ -49,9 +49,10 @@ export function Students() {
   const handleAddStudent = async () => {
     try {
       setIsLoading(true);
-      // Remove empty studentId so backend auto-generates
+      // Remove empty studentId and studentEmail so backend auto-generates or handles optionality
       const dataToSend = { ...formData };
       if (!dataToSend.studentId) delete dataToSend.studentId;
+      if (!dataToSend.studentEmail) delete dataToSend.studentEmail;
 
       await api.post('/admin/students', dataToSend);
       setShowAddModal(false);
