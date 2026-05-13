@@ -45,11 +45,11 @@ export function Timetable() {
       try {
         const [classesRes, subjectsRes, teachersRes] = await Promise.all([
           api.get("/admin/classes/overview"),
-          api.get("/admin/subjects"),
+          api.get("/academic/subjects"),
           api.get("/admin/teachers")
         ]);
         setClasses(classesRes || []);
-        setSubjects(subjectsRes || []);
+        setSubjects(subjectsRes?.subjects || subjectsRes || []);
         setTeachers(teachersRes || []);
         
         if (classesRes && classesRes.length > 0) {

@@ -6,10 +6,34 @@ import api from "../../utils/api";
 const sessions = ["2025/2026", "2024/2025", "2023/2024"];
 const termsOptions = ["First Term", "Second Term", "Third Term"];
 
+type ResultView = "classes" | "students";
+
+type GradeSetting = {
+  grade: string;
+  minScore: number;
+  maxScore: number;
+  remark: string;
+  color: string;
+};
+
+const defaultGrades: GradeSetting[] = [
+  { grade: "A", minScore: 80, maxScore: 100, remark: "Excellent", color: "bg-green-50 text-green-700" },
+  { grade: "B", minScore: 70, maxScore: 79, remark: "Very Good", color: "bg-blue-50 text-blue-700" },
+  { grade: "C", minScore: 60, maxScore: 69, remark: "Good", color: "bg-yellow-50 text-yellow-700" },
+  { grade: "D", minScore: 50, maxScore: 59, remark: "Fair", color: "bg-orange-50 text-orange-700" },
+  { grade: "E", minScore: 40, maxScore: 49, remark: "Poor", color: "bg-red-50 text-red-700" },
+  { grade: "F", minScore: 0, maxScore: 39, remark: "Fail", color: "bg-red-100 text-red-800" },
+];
+
+const classStudentResults: Record<string, any[]> = {};
+
 export function Examinations() {
   const [activeTab, setActiveTab] = useState("Examinations");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState<any | null>(null);
+  const [showEditGradeModal, setShowEditGradeModal] = useState<GradeSetting | null>(null);
+  const [editingGradeIndex, setEditingGradeIndex] = useState<number | null>(null);
+  const [gradeSettings, setGradeSettings] = useState<GradeSetting[]>(defaultGrades);
   const [searchTerm, setSearchTerm] = useState("");
   const [sessionFilter, setSessionFilter] = useState("2025/2026");
   const [resultView, setResultView] = useState<ResultView>("classes");

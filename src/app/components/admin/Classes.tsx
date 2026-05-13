@@ -29,12 +29,26 @@ export function Classes() {
   const [isCreating, setIsCreating] = useState(false);
   
   const [formData, setFormData] = useState({
-    name: "",
+    name: "JSS 1",
     level: "JSS 1",
     section: "",
     classTeacherId: "",
     room: ""
   });
+
+  const updateFormField = (field: string, value: string) => {
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      // Auto-compute name from level + section
+      if (field === "level" || field === "section") {
+        const level = field === "level" ? value : prev.level;
+        const section = field === "section" ? value.toUpperCase().trim() : prev.section;
+        updated.section = field === "section" ? value.toUpperCase().trim() : prev.section;
+        updated.name = section ? `${level} ${section}` : level;
+      }
+      return updated;
+    });
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -57,8 +71,12 @@ export function Classes() {
   }, []);
 
   const handleCreateClass = async () => {
-    if (!formData.name || !formData.level) {
-      alert("Please fill in the required fields.");
+    if (!formData.level) {
+      alert("Please select a level.");
+      return;
+    }
+    if (!formData.section || !formData.section.trim()) {
+      alert("Please enter a section (e.g. A, B, C). Section is required.");
       return;
     }
 
@@ -66,7 +84,7 @@ export function Classes() {
     try {
       await api.post("/admin/classes", formData);
       setShowAddModal(false);
-      setFormData({ name: "", level: "JSS 1", section: "", classTeacherId: "", room: "" });
+      setFormData({ name: "JSS 1", level: "JSS 1", section: "", classTeacherId: "", room: "" });
       fetchData();
     } catch (err: any) {
       alert(err.message || "Failed to create class.");
@@ -190,21 +208,21 @@ export function Classes() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label style={{ fontSize: "13px" }}>Class Name</label>
+                <label style={{ fontSize: "13px" }}>Class Name <span className="text-muted-foreground">(auto-generated)</span></label>
                 <input 
-                  placeholder="e.g. JSS 1C" 
+                  placeholder="Select level and enter section below" 
                   value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
-                  className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" 
+                  disabled
+                  className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-gray-100 text-gray-600 cursor-not-allowed" 
                   style={{ fontSize: "13px" }} 
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: "13px" }}>Level</label>
+                  <label style={{ fontSize: "13px" }}>Level <span className="text-red-500">*</span></label>
                   <select 
                     value={formData.level}
-                    onChange={e => setFormData({...formData, level: e.target.value})}
+                    onChange={e => updateFormField("level", e.target.value)}
                     className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" 
                     style={{ fontSize: "13px" }}
                   >
@@ -217,11 +235,11 @@ export function Classes() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: "13px" }}>Section</label>
+                  <label style={{ fontSize: "13px" }}>Section <span className="text-red-500">*</span></label>
                   <input 
-                    placeholder="e.g. C" 
+                    placeholder="e.g. A, B, C" 
                     value={formData.section}
-                    onChange={e => setFormData({...formData, section: e.target.value})}
+                    onChange={e => updateFormField("section", e.target.value)}
                     className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" 
                     style={{ fontSize: "13px" }} 
                   />
