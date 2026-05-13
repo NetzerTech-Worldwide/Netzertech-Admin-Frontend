@@ -14,6 +14,21 @@ export function Teachers() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [showAddModal, setShowAddModal] = useState(false);
   const [teachers, setTeachers] = useState<TeacherType[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const [formData, setFormData] = useState({
+    title: 'Mr.',
+    firstName: '',
+    lastName: '',
+    gender: 'Male',
+    subject: '',
+    qualification: 'B.Sc/B.A/B.Ed',
+    email: '',
+    phone: '',
+    experience: '',
+    joinDate: '',
+    address: ''
+  });
 
   useEffect(() => {
     fetchTeachers();
@@ -41,6 +56,29 @@ export function Teachers() {
     } catch (error) {
       console.error("Error fetching teachers:", error);
       setTeachers([]);
+    }
+  };
+
+  const handleAddTeacher = async () => {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+      alert("Please fill in the required fields (First Name, Last Name, Email, Phone).");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      await api.post('/admin/teachers', formData);
+      setShowAddModal(false);
+      setFormData({
+        title: 'Mr.', firstName: '', lastName: '', gender: 'Male', subject: '',
+        qualification: 'B.Sc/B.A/B.Ed', email: '', phone: '', experience: '', joinDate: '', address: ''
+      });
+      fetchTeachers();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to create teacher");
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -166,7 +204,7 @@ export function Teachers() {
             <div className="p-6 space-y-4">
               <div>
                 <label style={{ fontSize: "13px" }}>Title</label>
-                <select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                <select value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option>Mr.</option>
                   <option>Mrs.</option>
                   <option>Ms.</option>
@@ -175,24 +213,24 @@ export function Teachers() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: "13px" }}>First Name</label>
-                  <input placeholder="e.g. John" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
+                  <label style={{ fontSize: "13px" }}>First Name <span className="text-red-500">*</span></label>
+                  <input value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} placeholder="e.g. John" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "13px" }}>Last Name</label>
-                  <input placeholder="e.g. Doe" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
+                  <label style={{ fontSize: "13px" }}>Last Name <span className="text-red-500">*</span></label>
+                  <input value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} placeholder="e.g. Doe" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                 </div>
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Gender</label>
-                <select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option>Male</option>
                   <option>Female</option>
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Subject Specialization</label>
-                <select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                <select value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="">Select Subject</option>
                   <option>Mathematics</option>
                   <option>English Language</option>
@@ -208,7 +246,7 @@ export function Teachers() {
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Highest Qualification</label>
-                <select className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                <select value={formData.qualification} onChange={e => setFormData({...formData, qualification: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option>B.Sc/B.A/B.Ed</option>
                   <option>M.Sc/M.A/M.Ed</option>
                   <option>Ph.D</option>
@@ -218,32 +256,39 @@ export function Teachers() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ fontSize: "13px" }}>Email Address</label>
-                  <input type="email" placeholder="teacher@netzertech.edu.ng" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
+                  <label style={{ fontSize: "13px" }}>Email Address <span className="text-red-500">*</span></label>
+                  <input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} type="email" placeholder="teacher@netzertech.edu.ng" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "13px" }}>Phone Number</label>
-                  <input type="tel" placeholder="08012345678" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
+                  <label style={{ fontSize: "13px" }}>Phone Number <span className="text-red-500">*</span></label>
+                  <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} type="tel" placeholder="08012345678" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label style={{ fontSize: "13px" }}>Years of Experience</label>
-                  <input type="number" min="0" placeholder="e.g. 5" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
+                  <input value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} type="number" min="0" placeholder="e.g. 5" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                 </div>
                 <div>
                   <label style={{ fontSize: "13px" }}>Join Date</label>
-                  <input type="date" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
+                  <input value={formData.joinDate} onChange={e => setFormData({...formData, joinDate: e.target.value})} type="date" className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} />
                 </div>
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Address</label>
-                <textarea rows={2} placeholder="Full residential address..." className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA] resize-none" style={{ fontSize: "13px" }} />
+                <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} rows={2} placeholder="Full residential address..." className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA] resize-none" style={{ fontSize: "13px" }} />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
               <button onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-lg border border-border hover:bg-gray-50" style={{ fontSize: "13px" }}>Cancel</button>
-              <button onClick={() => setShowAddModal(false)} className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74]" style={{ fontSize: "13px" }}>Add Teacher</button>
+              <button 
+                disabled={isCreating}
+                onClick={handleAddTeacher} 
+                className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74] disabled:opacity-50" 
+                style={{ fontSize: "13px" }}
+              >
+                {isCreating ? 'Adding...' : 'Add Teacher'}
+              </button>
             </div>
           </div>
         </div>
