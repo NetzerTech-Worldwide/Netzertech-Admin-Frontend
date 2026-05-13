@@ -39,8 +39,8 @@ export function Students() {
         api.get('/admin/students'),
         api.get('/admin/classes/overview')
       ]);
-      setAllStudents(studentsRes.data);
-      setClassInfo(classesRes.data);
+      setAllStudents(studentsRes || []);
+      setClassInfo(classesRes || []);
     } catch (error) {
       console.error("Error fetching student data:", error);
     }
