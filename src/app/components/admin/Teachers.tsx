@@ -38,19 +38,20 @@ export function Teachers() {
     try {
       const response = await api.get('/admin/teachers');
       const data = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
-      // Map API response to component state shape
-      const mappedTeachers = data.map((t: any) => ({
-        id: t.id,
-        name: t.name,
-        subject: t.subjects || "Various",
-        classes: t.classes ? t.classes.split(',').map((c:string) => c.trim()) : [],
-        qualification: "B.Sc / B.Ed", // default since backend might not have this
-        experience: "5 years",
-        gender: "Not specified",
+      
+      // Filter out any null/undefined items and map safely
+      const mappedTeachers = data.filter((t: any) => t).map((t: any) => ({
+        id: t.id || Math.random().toString(),
+        name: t.name || t.fullName || "Unknown Teacher",
+        subject: t.subjects || t.subject || "Various",
+        classes: typeof t.classes === 'string' ? t.classes.split(',').map((c:string) => c.trim()) : [],
+        qualification: t.qualification || "B.Sc / B.Ed",
+        experience: t.experience || "5 years",
+        gender: t.gender || "Not specified",
         status: t.status || "Active",
-        email: t.email,
-        phone: t.phone,
-        joinDate: t.joined
+        email: t.email || "N/A",
+        phone: t.phone || "N/A",
+        joinDate: t.joined || "N/A"
       }));
       setTeachers(mappedTeachers);
     } catch (error) {
@@ -83,7 +84,11 @@ export function Teachers() {
   };
 
   const filtered = (Array.isArray(teachers) ? teachers : []).filter((t) => {
-    const matchSearch = t.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.subject.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!t) return false;
+    const name = t.name || "";
+    const subject = t.subject || "";
+    const matchSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                       subject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatus = statusFilter === "All" || t.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -121,10 +126,10 @@ export function Teachers() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Teachers", value: (Array.isArray(teachers) ? teachers : []).length, color: "#1B6B8A" },
-          { label: "Active", value: (Array.isArray(teachers) ? teachers : []).filter(t => t.status === "Active").length, color: "#22C55E" },
-          { label: "On Leave", value: (Array.isArray(teachers) ? teachers : []).filter(t => t.status === "On Leave").length, color: "#F59E0B" },
-          { label: "Inactive", value: (Array.isArray(teachers) ? teachers : []).filter(t => t.status === "Inactive").length, color: "#EF4444" },
+          { label: "Total Teachers", value: (Array.isArray(teachers) ? teachers : []).filter(Boolean).length, color: "#1B6B8A" },
+          { label: "Active", value: (Array.isArray(teachers) ? teachers : []).filter(t => t?.status === "Active").length, color: "#22C55E" },
+          { label: "On Leave", value: (Array.isArray(teachers) ? teachers : []).filter(t => t?.status === "On Leave").length, color: "#F59E0B" },
+          { label: "Inactive", value: (Array.isArray(teachers) ? teachers : []).filter(t => t?.status === "Inactive").length, color: "#EF4444" },
         ].map((s) => (
           <div key={s.label} className="bg-white rounded-xl border border-border shadow-sm p-4">
             <p className="text-muted-foreground" style={{ fontSize: "12px" }}>{s.label}</p>
@@ -150,14 +155,14 @@ export function Teachers() {
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filtered.map((teacher) => (
-          <div key={teacher.id} className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate(`/teachers/${teacher.id}`)}>
+          <div key={teacher.id} className="bg-white rounded-xl border border-border shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer" onClick={() => teacher.id && navigate(`/teachers/${teacher.id}`)}>
             <div className="flex items-start justify-between mb-3">
               <div className="w-12 h-12 rounded-full bg-[#1B6B8A] flex items-center justify-center">
                 <span className="text-white" style={{ fontSize: "14px", fontWeight: 600 }}>
-                  {teacher.name.replace(/Mr\.|Mrs\.|Dr\./g, "").trim().split(" ").map(n => n[0]).join("")}
+                  {(teacher.name || "U").replace(/Mr\.|Mrs\.|Dr\./g, "").trim().split(" ").map(n => n ? n[0] : "").join("")}
                 </span>
               </div>
-              <span className={`px-2 py-0.5 rounded-full ${statusColor(teacher.status)}`} style={{ fontSize: "10px", fontWeight: 500 }}>
+              <span className={`px-2 py-0.5 rounded-full ${statusColor(teacher.status || "Active")}`} style={{ fontSize: "10px", fontWeight: 500 }}>
                 {teacher.status}
               </span>
             </div>
@@ -183,7 +188,7 @@ export function Teachers() {
               <span style={{ fontSize: "11px" }}>{teacher.phone}</span>
             </div>
             <div className="flex flex-wrap gap-1 mt-3">
-              {teacher.classes.map((cls) => (
+              {(teacher.classes || []).map((cls: string) => (
                 <span key={cls} className="px-2 py-0.5 rounded bg-[#E8F4F8] text-[#1B6B8A]" style={{ fontSize: "10px", fontWeight: 500 }}>
                   {cls}
                 </span>
