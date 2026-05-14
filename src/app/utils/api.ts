@@ -41,12 +41,32 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
     const data = isJson ? await response.json() : await response.text();
 
     if (!response.ok) {
-      throw new Error(data?.message || `HTTP error! status: ${response.status}`);
+      const errorMessage = data?.message || (typeof data === 'string' ? data : `HTTP error! status: ${response.status}`);
+      
+      // Handle session expiration
+      if (response.status === 401 || errorMessage.toLowerCase().includes('token has expired') || errorMessage.toLowerCase().includes('unauthorized')) {
+        localStorage.removeItem('admin_token');
+        // Redirect to login page if we're not already there
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('API Error:', error);
+    
+    // Catch-all for token expiration in error message
+    if (error.message?.toLowerCase().includes('token has expired')) {
+      localStorage.removeItem('admin_token');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    }
+    
     throw error;
   }
 }

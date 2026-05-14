@@ -143,7 +143,7 @@ export function Parents() {
           <table className="w-full">
             <thead>
               <tr className="bg-[#F5F7FA] border-b border-border">
-                {["ID", "Name", "Contact", "Children", "Occupation", "Status", "Actions"].map((h) => (
+                {["Name", "Contact", "Children", "Occupation", "Status", "Actions"].map((h) => (
                   <th key={h} className="text-left px-4 py-3" style={{ fontSize: "12px", fontWeight: 600 }}>{h}</th>
                 ))}
               </tr>
@@ -151,7 +151,6 @@ export function Parents() {
             <tbody>
               {filtered.map((parent) => (
                 <tr key={parent.id} className="border-b border-border hover:bg-gray-50">
-                  <td className="px-4 py-3" style={{ fontSize: "13px" }}>{parent.id}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-[#E8F4F8] flex items-center justify-center">
