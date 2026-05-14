@@ -436,7 +436,7 @@ export function Examinations() {
               <div>
                 <label style={{ fontSize: "13px" }}>Grade Letter</label>
                 <input
-                  defaultValue={showEditGradeModal.grade}
+                  defaultValue={showEditGradeModal?.grade}
                   placeholder="e.g. A, B+, C1"
                   className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]"
                   style={{ fontSize: "13px" }}
@@ -447,7 +447,7 @@ export function Examinations() {
                   <label style={{ fontSize: "13px" }}>Minimum Score (%)</label>
                   <input
                     type="number"
-                    defaultValue={showEditGradeModal.minScore}
+                    defaultValue={showEditGradeModal?.minScore}
                     min="0"
                     max="100"
                     placeholder="e.g. 80"
@@ -459,7 +459,7 @@ export function Examinations() {
                   <label style={{ fontSize: "13px" }}>Maximum Score (%)</label>
                   <input
                     type="number"
-                    defaultValue={showEditGradeModal.maxScore}
+                    defaultValue={showEditGradeModal?.maxScore}
                     min="0"
                     max="100"
                     placeholder="e.g. 100"
@@ -471,7 +471,7 @@ export function Examinations() {
               <div>
                 <label style={{ fontSize: "13px" }}>Remark</label>
                 <input
-                  defaultValue={showEditGradeModal.remark}
+                  defaultValue={showEditGradeModal?.remark}
                   placeholder="e.g. Excellent, Very Good"
                   className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]"
                   style={{ fontSize: "13px" }}
@@ -479,7 +479,7 @@ export function Examinations() {
               </div>
               <div>
                 <label style={{ fontSize: "13px" }}>Color Theme</label>
-                <select defaultValue={showEditGradeModal.color} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
+                <select defaultValue={showEditGradeModal?.color} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>
                   <option value="bg-green-50 text-green-700">Green (Excellent)</option>
                   <option value="bg-blue-50 text-blue-700">Blue (Very Good)</option>
                   <option value="bg-yellow-50 text-yellow-700">Yellow (Good)</option>
