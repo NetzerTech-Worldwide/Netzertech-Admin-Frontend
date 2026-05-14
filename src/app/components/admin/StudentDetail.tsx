@@ -18,9 +18,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { useState } from "react";
-
-const studentData: Record<string, any> = {};
+import { useState, useEffect } from "react";
+import api from "../../utils/api";
+import { Loader2 } from "lucide-react";
 
 const tabs = ["Overview", "Academics", "Attendance", "Fee History"];
 
@@ -28,8 +28,53 @@ export function StudentDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Overview");
+  const [student, setStudent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const student = studentData[id || "STU001"] || studentData["STU001"];
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        setIsLoading(true);
+        const data = await api.get(`/admin/students/${id}`);
+        setStudent(data);
+        setError(null);
+      } catch (err: any) {
+        console.error("Failed to fetch student details:", err);
+        setError(err.message || "Failed to load student details");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchStudent();
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-[#1B6B8A] animate-spin" />
+        <p className="text-muted-foreground" style={{ fontSize: "14px" }}>Loading student details...</p>
+      </div>
+    );
+  }
+
+  if (error || !student) {
+    return (
+      <div className="bg-red-50 border border-red-100 rounded-xl p-6 text-center space-y-4">
+        <p className="text-red-600" style={{ fontSize: "14px" }}>{error || "Student not found"}</p>
+        <button
+          onClick={() => navigate("/students")}
+          className="px-4 py-2 bg-[#1B6B8A] text-white rounded-lg"
+          style={{ fontSize: "13px" }}
+        >
+          Back to Students
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -46,7 +91,7 @@ export function StudentDetail() {
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="w-20 h-20 rounded-full bg-[#1B6B8A] flex items-center justify-center shrink-0">
             <span className="text-white" style={{ fontSize: "24px", fontWeight: 700 }}>
-              {student.name.split(" ").map((n: string) => n[0]).join("")}
+              {student.name ? student.name.split(" ").map((n: string) => n[0]).join("") : "S"}
             </span>
           </div>
           <div className="flex-1">
@@ -58,7 +103,7 @@ export function StudentDetail() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-green-50 text-green-700" style={{ fontSize: "12px", fontWeight: 500 }}>
+                <span className={`px-3 py-1 rounded-full ${student.status === "Active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`} style={{ fontSize: "12px", fontWeight: 500 }}>
                   {student.status}
                 </span>
                 <button className="flex items-center gap-2 px-3 py-1.5 bg-[#1B6B8A] text-white rounded-lg" style={{ fontSize: "12px" }}>

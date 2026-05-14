@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Mail, Phone, Calendar, Edit, BookOpen, X } from "lucide-react";
-import { useState } from "react";
-
-const teacherData: Record<string, any> = {};
+import { useState, useEffect } from "react";
+import api from "../../utils/api";
+import { Loader2 } from "lucide-react";
 
 const tabs = ["Overview", "Schedule", "Performance"];
 
@@ -11,7 +11,53 @@ export function TeacherDetail() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Overview");
   const [showEditModal, setShowEditModal] = useState(false);
-  const teacher = teacherData[id || "TCH001"] || teacherData["TCH001"];
+  const [teacher, setTeacher] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTeacher = async () => {
+      try {
+        setIsLoading(true);
+        const data = await api.get(`/admin/teachers/${id}`);
+        setTeacher(data);
+        setError(null);
+      } catch (err: any) {
+        console.error("Failed to fetch teacher details:", err);
+        setError(err.message || "Failed to load teacher details");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchTeacher();
+    }
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
+        <Loader2 className="w-8 h-8 text-[#1B6B8A] animate-spin" />
+        <p className="text-muted-foreground" style={{ fontSize: "14px" }}>Loading teacher details...</p>
+      </div>
+    );
+  }
+
+  if (error || !teacher) {
+    return (
+      <div className="bg-red-50 border border-red-100 rounded-xl p-6 text-center space-y-4">
+        <p className="text-red-600" style={{ fontSize: "14px" }}>{error || "Teacher not found"}</p>
+        <button
+          onClick={() => navigate("/teachers")}
+          className="px-4 py-2 bg-[#1B6B8A] text-white rounded-lg"
+          style={{ fontSize: "13px" }}
+        >
+          Back to Teachers
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -23,7 +69,9 @@ export function TeacherDetail() {
       <div className="bg-white rounded-xl border border-border shadow-sm p-6">
         <div className="flex flex-col sm:flex-row items-start gap-5">
           <div className="w-20 h-20 rounded-full bg-[#1B6B8A] flex items-center justify-center shrink-0">
-            <span className="text-white" style={{ fontSize: "24px", fontWeight: 700 }}>EN</span>
+            <span className="text-white" style={{ fontSize: "24px", fontWeight: 700 }}>
+              {teacher.name ? teacher.name.split(" ").map((n: string) => n[0]).join("") : "T"}
+            </span>
           </div>
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -32,7 +80,7 @@ export function TeacherDetail() {
                 <p className="text-[#1B6B8A]" style={{ fontSize: "14px", fontWeight: 500 }}>{teacher.subject} Teacher</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full bg-green-50 text-green-700" style={{ fontSize: "12px", fontWeight: 500 }}>{teacher.status}</span>
+                <span className={`px-3 py-1 rounded-full ${teacher.status === "Active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`} style={{ fontSize: "12px", fontWeight: 500 }}>{teacher.status}</span>
                 <button onClick={() => setShowEditModal(true)} className="flex items-center gap-2 px-3 py-1.5 bg-[#1B6B8A] text-white rounded-lg hover:bg-[#155a74]" style={{ fontSize: "12px" }}>
                   <Edit className="w-3.5 h-3.5" /> Edit
                 </button>
