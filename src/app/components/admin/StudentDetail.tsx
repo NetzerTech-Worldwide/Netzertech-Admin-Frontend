@@ -8,6 +8,8 @@ import {
   Edit,
   Download,
   User,
+  Loader2,
+  X,
 } from "lucide-react";
 import {
   BarChart,
@@ -20,7 +22,6 @@ import {
 } from "recharts";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
-import { Loader2, X } from "lucide-react";
 
 const tabs = ["Overview", "Academics", "Attendance", "Fee History"];
 

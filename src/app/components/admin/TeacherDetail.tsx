@@ -1,8 +1,7 @@
 import { useParams, useNavigate } from "react-router";
-import { ArrowLeft, Mail, Phone, Calendar, Edit, BookOpen, X } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Calendar, Edit, BookOpen, X, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
-import { Loader2 } from "lucide-react";
 
 const tabs = ["Overview", "Schedule", "Performance"];
 
