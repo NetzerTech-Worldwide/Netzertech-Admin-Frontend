@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import { useState, useEffect } from "react";
 import api from "../../utils/api";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 
 const tabs = ["Overview", "Academics", "Attendance", "Fee History"];
 
@@ -31,6 +31,9 @@ export function StudentDetail() {
   const [student, setStudent] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -51,6 +54,41 @@ export function StudentDetail() {
       fetchStudent();
     }
   }, [id]);
+
+  const openEditModal = () => {
+    if (!student) return;
+    setEditFormData({
+      firstName: student.name?.split(" ")[0] || "",
+      lastName: student.name?.split(" ").slice(1).join(" ") || "",
+      gender: student.gender || "Male",
+      email: student.email || "",
+      phone: student.phone || "",
+      class: student.class || "",
+      status: student.status || "Active",
+      address: student.address || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditStudent = async () => {
+    if (!editFormData.firstName || !editFormData.lastName) {
+      alert("First Name and Last Name are required.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await api.patch(`/admin/students/${id}`, editFormData);
+      setShowEditModal(false);
+      // Refresh student data
+      const data = await api.get(`/admin/students/${id}`);
+      setStudent(data);
+    } catch (err: any) {
+      console.error("Failed to update student:", err);
+      alert(err.message || "Failed to update student.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -106,7 +144,7 @@ export function StudentDetail() {
                 <span className={`px-3 py-1 rounded-full ${student.status === "Active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`} style={{ fontSize: "12px", fontWeight: 500 }}>
                   {student.status}
                 </span>
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-[#1B6B8A] text-white rounded-lg" style={{ fontSize: "12px" }}>
+                <button onClick={openEditModal} className="flex items-center gap-2 px-3 py-1.5 bg-[#1B6B8A] text-white rounded-lg" style={{ fontSize: "12px" }}>
                   <Edit className="w-3.5 h-3.5" /> Edit
                 </button>
               </div>
@@ -309,6 +347,35 @@ export function StudentDetail() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <h3 style={{ fontSize: "16px", fontWeight: 600 }}>Edit Student</h3>
+              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label style={{ fontSize: "13px" }}>First Name <span className="text-red-500">*</span></label><input value={editFormData.firstName} onChange={e => setEditFormData({...editFormData, firstName: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+                <div><label style={{ fontSize: "13px" }}>Last Name <span className="text-red-500">*</span></label><input value={editFormData.lastName} onChange={e => setEditFormData({...editFormData, lastName: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label style={{ fontSize: "13px" }}>Gender</label><select value={editFormData.gender} onChange={e => setEditFormData({...editFormData, gender: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option>Male</option><option>Female</option></select></div>
+                <div><label style={{ fontSize: "13px" }}>Status</label><select value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option value="Active">Active</option><option value="Suspended">Suspended</option></select></div>
+              </div>
+              <div><label style={{ fontSize: "13px" }}>Phone Number</label><input value={editFormData.phone} onChange={e => setEditFormData({...editFormData, phone: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+              <div><label style={{ fontSize: "13px" }}>Email Address</label><input type="email" value={editFormData.email} onChange={e => setEditFormData({...editFormData, email: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+              <div><label style={{ fontSize: "13px" }}>Address</label><textarea value={editFormData.address} onChange={e => setEditFormData({...editFormData, address: e.target.value})} rows={2} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA] resize-none" style={{ fontSize: "13px" }} /></div>
+            </div>
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+              <button onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-lg border border-border hover:bg-gray-50" style={{ fontSize: "13px" }}>Cancel</button>
+              <button disabled={isSaving} onClick={handleEditStudent} className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74] disabled:opacity-50" style={{ fontSize: "13px" }}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
+            </div>
           </div>
         </div>
       )}

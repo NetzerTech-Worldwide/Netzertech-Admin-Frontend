@@ -352,34 +352,71 @@ export function Students() {
 
       {/* Edit Student Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-              <h3 style={{ fontSize: "16px", fontWeight: 600 }}>Edit Student</h3>
-              <button onClick={() => setShowEditModal(null)} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5" /></button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label style={{ fontSize: "13px" }}>First Name</label><input defaultValue={showEditModal.name.split(" ")[0]} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
-                <div><label style={{ fontSize: "13px" }}>Last Name</label><input defaultValue={showEditModal.name.split(" ").slice(1).join(" ")} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label style={{ fontSize: "13px" }}>Gender</label><select defaultValue={showEditModal.gender} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option>Male</option><option>Female</option></select></div>
-                <div><label style={{ fontSize: "13px" }}>Age</label><input type="number" defaultValue={showEditModal.age} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
-              </div>
-              <div><label style={{ fontSize: "13px" }}>Class</label><select defaultValue={showEditModal.class} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option>JSS 1A</option><option>JSS 1B</option><option>JSS 2A</option><option>JSS 2B</option><option>JSS 3A</option><option>JSS 3B</option><option>SS 1A</option><option>SS 1B</option><option>SS 2A</option><option>SS 2B</option><option>SS 3A</option><option>SS 3B</option></select></div>
-              <div><label style={{ fontSize: "13px" }}>Parent/Guardian Name</label><input defaultValue={showEditModal.parent} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
-              <div><label style={{ fontSize: "13px" }}>Phone Number</label><input defaultValue={showEditModal.phone} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
-              <div><label style={{ fontSize: "13px" }}>Email Address</label><input type="email" defaultValue={showEditModal.email} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
-              <div><label style={{ fontSize: "13px" }}>Status</label><select defaultValue={showEditModal.status} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option value="Active">Active</option><option value="Suspended">Suspended</option><option value="Graduated">Graduated</option></select></div>
-            </div>
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
-              <button onClick={() => setShowEditModal(null)} className="px-4 py-2 rounded-lg border border-border hover:bg-gray-50" style={{ fontSize: "13px" }}>Cancel</button>
-              <button onClick={() => setShowEditModal(null)} className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74]" style={{ fontSize: "13px" }}>Save Changes</button>
-            </div>
-          </div>
-        </div>
+        <EditStudentModal
+          student={showEditModal}
+          classInfo={classInfo}
+          onClose={() => setShowEditModal(null)}
+          onSaved={() => { setShowEditModal(null); fetchData(); }}
+        />
       )}
+    </div>
+  );
+}
+
+function EditStudentModal({ student, classInfo, onClose, onSaved }: { student: StudentType; classInfo: ClassOverviewType[]; onClose: () => void; onSaved: () => void }) {
+  const [editData, setEditData] = useState({
+    firstName: student.name.split(" ")[0] || "",
+    lastName: student.name.split(" ").slice(1).join(" ") || "",
+    gender: student.gender || "Male",
+    email: student.email || "",
+    phone: student.phone || "",
+    class: student.class || "",
+    status: student.status || "Active",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!editData.firstName || !editData.lastName) {
+      alert("First Name and Last Name are required.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await api.patch(`/admin/students/${student.id}`, editData);
+      onSaved();
+    } catch (err: any) {
+      console.error("Failed to update student:", err);
+      alert(err.message || "Failed to update student.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 style={{ fontSize: "16px", fontWeight: 600 }}>Edit Student</h3>
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div><label style={{ fontSize: "13px" }}>First Name <span className="text-red-500">*</span></label><input value={editData.firstName} onChange={e => setEditData({...editData, firstName: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+            <div><label style={{ fontSize: "13px" }}>Last Name <span className="text-red-500">*</span></label><input value={editData.lastName} onChange={e => setEditData({...editData, lastName: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label style={{ fontSize: "13px" }}>Gender</label><select value={editData.gender} onChange={e => setEditData({...editData, gender: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option>Male</option><option>Female</option></select></div>
+            <div><label style={{ fontSize: "13px" }}>Status</label><select value={editData.status} onChange={e => setEditData({...editData, status: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}><option value="Active">Active</option><option value="Suspended">Suspended</option><option value="Graduated">Graduated</option></select></div>
+          </div>
+          <div><label style={{ fontSize: "13px" }}>Class</label><select value={editData.class} onChange={e => setEditData({...editData, class: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }}>{classInfo.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}</select></div>
+          <div><label style={{ fontSize: "13px" }}>Phone Number</label><input value={editData.phone} onChange={e => setEditData({...editData, phone: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+          <div><label style={{ fontSize: "13px" }}>Email Address</label><input type="email" value={editData.email} onChange={e => setEditData({...editData, email: e.target.value})} className="w-full mt-1 px-3 py-2 rounded-lg border border-border bg-[#F5F7FA]" style={{ fontSize: "13px" }} /></div>
+        </div>
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg border border-border hover:bg-gray-50" style={{ fontSize: "13px" }}>Cancel</button>
+          <button disabled={isSaving} onClick={handleSave} className="px-4 py-2 rounded-lg bg-[#1B6B8A] text-white hover:bg-[#155a74] disabled:opacity-50" style={{ fontSize: "13px" }}>{isSaving ? 'Saving...' : 'Save Changes'}</button>
+        </div>
+      </div>
     </div>
   );
 }
